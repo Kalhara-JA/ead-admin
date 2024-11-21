@@ -1,10 +1,10 @@
+import axiosInstance from "@/lib/axiosInstance";
 import { Product } from "@/Type";
-import axios from "axios";
 
 export const fetchProducts = async () => {
   try {
-    const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_API_URL}/products`
+    const response = await axiosInstance.get(
+      `${process.env.NEXT_PUBLIC_API_URL}/product`
     );
     console.log(response);
     return response.data; // Axios stores the response data in `data`
@@ -16,8 +16,8 @@ export const fetchProducts = async () => {
 
 export const createProduct = async (product: Product) => {
   try {
-    const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/products`,
+    const response = await axiosInstance.post(
+      `${process.env.NEXT_PUBLIC_API_URL}/product`,
       product
     );
     console.log(response);
