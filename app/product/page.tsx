@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  ArrowUpDown,
-  ChevronDown,
-  MoreHorizontal,
-  Plus,
-} from "lucide-react";
+import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +20,18 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { FaPlus } from "react-icons/fa6";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 interface Product {
   id: string;
@@ -121,10 +128,61 @@ export default function ProductsPage() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Products</h1>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Product
-        </Button>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button
+              variant="outline"
+              className="bg-black text-white flex items-center gap-2 hover:bg-white hover:text-black group"
+            >
+              <FaPlus className="group-hover:text-black text-white" size={8} />{" "}
+              Add Product
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Add Product</DialogTitle>
+              <DialogDescription>
+                Make changes to your poduct section. Click save when you're done.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="name" className="text-right">
+                   Name
+                </Label>
+                <Input
+                  id="name"
+                  defaultValue="Pedro Duarte"
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="username" className="text-right">
+                  Image url
+                </Label>
+                <Input
+                  id="username"
+                  defaultValue="@peduarte"
+                  className="col-span-3"
+                />
+              </div>
+
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="price" className="text-right">
+                  Price
+                </Label>
+                <Input
+                  id="price"
+                  defaultValue="Pedro Duarte"
+                  className="col-span-3"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="submit">Save changes</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="flex items-center justify-between mb-4">
@@ -153,20 +211,29 @@ export default function ProductsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead onClick={() => handleSort("name")} className="cursor-pointer">
+              <TableHead
+                onClick={() => handleSort("name")}
+                className="cursor-pointer"
+              >
                 <div className="flex items-center">
                   Name
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </div>
               </TableHead>
               <TableHead>Category</TableHead>
-              <TableHead onClick={() => handleSort("price")} className="cursor-pointer">
+              <TableHead
+                onClick={() => handleSort("price")}
+                className="cursor-pointer"
+              >
                 <div className="flex items-center">
                   Price
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </div>
               </TableHead>
-              <TableHead onClick={() => handleSort("stock")} className="cursor-pointer">
+              <TableHead
+                onClick={() => handleSort("stock")}
+                className="cursor-pointer"
+              >
                 <div className="flex items-center">
                   Stock
                   <ArrowUpDown className="ml-2 h-4 w-4" />
