@@ -2,6 +2,15 @@
 
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -17,22 +26,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { createProduct, fetchProducts } from "../api/product/route";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import CloudinaryUpload from "@/components/ui/cloudinaryWidget";
 import { FaPlus } from "react-icons/fa6";
-
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createProduct, fetchProducts } from "../api/v1/products/route";
 import { Product } from "@/Type";
 
 const products: Product[] = [
@@ -83,6 +83,7 @@ export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [CompanyIcone, setCompanyIcone] = useState("");
 
   const sortProducts = (a: Product, b: Product) => {
     const aValue = a[sortBy];
@@ -215,6 +216,11 @@ export default function ProductsPage() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Products</h1>
+        <CloudinaryUpload
+              setImgUrl={setCompanyIcone}
+              type={"image"}
+              croping={false}
+            />
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="outline" className="bg-black text-white">
