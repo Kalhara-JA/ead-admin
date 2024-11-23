@@ -10,3 +10,10 @@ export type Product = {
     stock: number;
     status: string;
     };
+
+export type Category = {
+    id: string;
+    skuCode: string;
+    name: string;
+  };
+

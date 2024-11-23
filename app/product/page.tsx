@@ -17,10 +17,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
+import { IoAdd } from "react-icons/io5";
+import { IoAddOutline } from "react-icons/io5";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FaPlus } from "react-icons/fa6";
 
 import {
   Dialog,
@@ -32,8 +32,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { createProduct, fetchProducts } from "../api/v1/products/route";
-import { Product } from "@/Type";
+import {
+  createCategory,
+  createProduct,
+  fetchCategories,
+  fetchProducts,
+} from "../api/v1/products/route";
+import { Category, Product } from "@/Type";
 
 const products: Product[] = [
   {
@@ -82,6 +87,7 @@ export default function ProductsPage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [searchTerm, setSearchTerm] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
   const sortProducts = (a: Product, b: Product) => {
@@ -114,6 +120,22 @@ export default function ProductsPage() {
     };
 
     getProducts();
+  }, []);
+
+  useEffect(() => {
+    const getCategories = async () => {
+      try {
+        const data = await fetchCategories();
+        console.log(data);
+        setCategories(data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getCategories();
   }, []);
 
   const filteredProducts = products
@@ -154,12 +176,15 @@ export default function ProductsPage() {
     brand: "",
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [categoryFormValues, setCategoryFormValues] = useState({
+    name: "",
+    skuCode: "",
+  });
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
+  ) => {
     const { id, value } = e.target;
-    setFormValues((prev) => ({
-      ...prev,
-      [id]: value,
-    }));
+    setFormValues((prevValues) => ({ ...prevValues, [id]: value }));
   };
 
   const handleSave = async () => {
@@ -211,6 +236,34 @@ export default function ProductsPage() {
     }
   };
 
+  const handleCategorySave = async () => {
+    console.log(
+      "Saving category........................................................."
+    );
+    console.log("Saving category:", categoryFormValues);
+    try {
+      const newCategory: Category = {
+        id: (products.length + 1).toString(),
+        name: categoryFormValues.name,
+        skuCode: categoryFormValues.name.toUpperCase().replace(" ", "-"),
+      };
+
+      // Call the API to create the category
+      await createCategory(newCategory);
+
+      // Update local state
+      categories.push(newCategory);
+
+      // Clear form fields
+      setCategoryFormValues({
+        skuCode: "",
+        name: "",
+      });
+    } catch (error) {
+      console.error("Error creating category:", error);
+    }
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -218,7 +271,7 @@ export default function ProductsPage() {
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="outline" className="bg-black text-white">
-              Add Product
+              <IoAddOutline /> Add Product
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
@@ -257,12 +310,20 @@ export default function ProductsPage() {
                 <Label htmlFor="category" className="text-right">
                   Category
                 </Label>
-                <Input
+                <select
                   id="category"
                   value={formValues.category}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                />
+                  onChange={(e) =>
+                    handleInputChange(e as React.ChangeEvent<HTMLSelectElement>)
+                  }
+                  className="col-span-3 border border-gray-300 rounded p-2"
+                >
+                  {categories.map((category, index) => (
+                    <option key={index} value={category.skuCode}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
@@ -316,6 +377,47 @@ export default function ProductsPage() {
             </div>
             <DialogFooter>
               <Button type="button" onClick={handleSave}>
+                Save
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="flex justify-between items-center mb-6">
+        <Dialog>
+          <DialogTrigger asChild>
+            {/* Button with custom styling */}
+            <Button
+              variant="outline"
+              className="border-black bg-white text-black hover:bg-gray-200 ml-auto flex items-center gap-2"
+            >
+              <IoAddOutline /> Add Category {/* Icon and text */}
+            </Button>
+          </DialogTrigger>
+
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Add Category</DialogTitle>
+              <DialogDescription>
+                Enter Category and click save.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="name" className="text-right">
+                  Category
+                </Label>
+                <Input
+                  id="name"
+                  value={formValues.name}
+                  onChange={handleInputChange}
+                  className="col-span-3"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" onClick={handleCategorySave}>
                 Save
               </Button>
             </DialogFooter>
