@@ -1,3 +1,5 @@
+"use client"
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   BarChart,
@@ -24,8 +26,10 @@ import {
   SheetTrigger
 } from '@/components/ui/sheet';
 
+import AuthButton from '../authButton';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { SessionProvider } from 'next-auth/react';
 
 interface SidebarItemProps {
   icon: ReactNode;
@@ -49,6 +53,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ icon, label ,path}) => {
 
 const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ children }) => {
   return (
+<SessionProvider>
     <div className="flex h-screen">
       {/* Sidebar */}
       <div className="hidden md:flex flex-col w-64 bg-gray-900 text-white p-4">
@@ -99,7 +104,7 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ children })
           </div>
           
           {/* User Profile Dropdown */}
-          <DropdownMenu>
+          {/* <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Avatar className="cursor-pointer">
                 <AvatarImage src="/placeholder-user.jpg" alt="User Profile" />
@@ -114,7 +119,8 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ children })
               <DropdownMenuSeparator />
               <DropdownMenuItem>Logout</DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
+          </DropdownMenu> */}
+          <AuthButton />
         </header>
 
         {/* Main Content */}
@@ -123,6 +129,7 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ children })
         </main>
       </div>
     </div>
+    </SessionProvider>
   );
 };
 

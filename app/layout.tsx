@@ -1,7 +1,9 @@
 import "./globals.css";
 
-import AdminDashboardLayout from '@/components/dashboard/AdminLayout'; // Adjust path as needed
+import AdminDashboardLayout from "@/components/dashboard/AdminLayout"; // Adjust path as needed
 import type { Metadata } from "next";
+import { Providers } from "@/components/Provider";
+import { SessionProvider } from "next-auth/react";
 import localFont from "next/font/local";
 
 const geistSans = localFont({
@@ -30,9 +32,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AdminDashboardLayout>
-          {children}
-        </AdminDashboardLayout>
+        {" "}
+        <Providers>
+          <AdminDashboardLayout>{children}</AdminDashboardLayout>
+        </Providers>
       </body>
     </html>
   );

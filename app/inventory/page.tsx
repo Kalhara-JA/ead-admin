@@ -12,7 +12,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Select,
   SelectContent,
@@ -32,6 +32,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+import { fetchInventory } from "../api/inventory/route";
 
 interface InventoryItem {
   id: string;
@@ -46,61 +47,13 @@ interface InventoryItem {
   status: "In Stock" | "Low Stock" | "Out of Stock" | "Overstock";
 }
 
-const inventoryData: InventoryItem[] = [
-  {
-    id: "1",
-    sku: "NK-AM-001",
-    name: "Nike Air Max",
-    currentStock: 45,
-    minimumStock: 20,
-    maximumStock: 100,
-    reorderPoint: 30,
-    location: "Warehouse A",
-    lastRestocked: "2024-03-15",
-    status: "In Stock",
-  },
-  {
-    id: "2",
-    sku: "SM-S24-001",
-    name: "Samsung Galaxy S24",
-    currentStock: 5,
-    minimumStock: 10,
-    maximumStock: 50,
-    reorderPoint: 15,
-    location: "Warehouse B",
-    lastRestocked: "2024-03-14",
-    status: "Low Stock",
-  },
-  {
-    id: "3",
-    sku: "AP-MP-001",
-    name: "MacBook Pro",
-    currentStock: 0,
-    minimumStock: 5,
-    maximumStock: 30,
-    reorderPoint: 8,
-    location: "Warehouse A",
-    lastRestocked: "2024-03-13",
-    status: "Out of Stock",
-  },
-  {
-    id: "4",
-    sku: "NK-JD-001",
-    name: "Nike Jordan",
-    currentStock: 95,
-    minimumStock: 20,
-    maximumStock: 80,
-    reorderPoint: 30,
-    location: "Warehouse C",
-    lastRestocked: "2024-03-16",
-    status: "Overstock",
-  },
-];
-
 export default function InventoryPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [locationFilter, setLocationFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [inventoryData, setInventoryData] = useState<InventoryItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Calculate inventory metrics
   const totalItems = inventoryData.reduce(
@@ -138,6 +91,27 @@ export default function InventoryPage() {
     if (percentage > 90) return "bg-blue-500";
     return "bg-green-500";
   };
+  
+  const loadInventoryData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await fetchInventory();
+      setInventoryData(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch inventory data');
+      console.error('Error fetching inventory:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadInventoryData();
+    console.log("Inventory data loaded");
+  }, []);
+
+  
 
   return (
     <div className="p-6 space-y-6">
@@ -316,3 +290,5 @@ export default function InventoryPage() {
     </div>
   );
 }
+
+
