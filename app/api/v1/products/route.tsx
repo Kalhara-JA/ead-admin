@@ -54,3 +54,31 @@ export const fetchCategories = async () => {
     throw error;
   }
 };
+
+export const deleteProduct = async (id: string) => {
+  try {
+    const response = await axiosInstance.delete(
+      `${process.env.NEXT_PUBLIC_API_URL}/products/${id}`
+    );
+    console.log(response);
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    throw error;
+  }
+};
+
+export const updateProduct = async (id: string, product: Product) => {
+  console.log("idddddddddddddddddddd..................................................",id);
+  try {
+    const response = await axiosInstance.put(
+      `${process.env.NEXT_PUBLIC_API_URL}/products/${id}`,
+      product
+    );
+    console.log("updatinggggg..................................................",response);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating product:", error);
+    throw error;
+  }
+};

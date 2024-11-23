@@ -8,6 +8,7 @@ export type Product = {
     image: string;
     price: number;
     stock: number;
+    last_updated: string;
     status: string;
     };
 
