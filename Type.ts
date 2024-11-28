@@ -8,5 +8,13 @@ export type Product = {
     image: string;
     price: number;
     stock: number;
+    last_updated: string;
     status: string;
     };
+
+export type Category = {
+    id: string;
+    skuCode: string;
+    name: string;
+  };
+

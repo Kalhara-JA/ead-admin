@@ -17,10 +17,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
+import { IoAdd } from "react-icons/io5";
+import { IoAddOutline } from "react-icons/io5";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FaPlus } from "react-icons/fa6";
 
 import {
   Dialog,
@@ -32,8 +32,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { createProduct, fetchProducts } from "../api/v1/products/route";
-import { Product } from "@/Type";
+import {
+  createCategory,
+  createProduct,
+  deleteProduct,
+  fetchCategories,
+  fetchProducts,
+  updateProduct,
+} from "../api/v1/products/route";
+import { Category, Product } from "@/Type";
 
 const products: Product[] = [
   {
@@ -45,6 +52,7 @@ const products: Product[] = [
     stock: 45,
     status: "In Stock",
     brand: "Nike",
+    last_updated: "2021-10-01",
     description:
       "The Nike Air Max is a classic sneaker that never goes out of style.",
     image: "https://via.placeholder.com/150",
@@ -58,6 +66,7 @@ const products: Product[] = [
     stock: 5,
     status: "Low Stock",
     brand: "Samsung",
+    last_updated: "2021-10-01",
     description:
       "The Samsung Galaxy S24 is the latest smartphone from Samsung.",
     image: "https://via.placeholder.com/150",
@@ -71,6 +80,7 @@ const products: Product[] = [
     stock: 0,
     status: "Out of Stock",
     brand: "Apple",
+    last_updated: "2021-10-01",
     description: "The MacBook Pro is a powerful laptop for professionals.",
     image: "https://via.placeholder.com/150",
   },
@@ -82,7 +92,10 @@ export default function ProductsPage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [searchTerm, setSearchTerm] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const sortProducts = (a: Product, b: Product) => {
     const aValue = a[sortBy];
@@ -116,11 +129,38 @@ export default function ProductsPage() {
     getProducts();
   }, []);
 
+  useEffect(() => {
+    const getCategories = async () => {
+      try {
+        const data = await fetchCategories();
+        console.log(data);
+        setCategories(data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getCategories();
+  }, []);
+
   const filteredProducts = products
-    .filter((product) =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    .filter((product) => {
+      // Check if the search term matches the product name
+      const matchesSearchTerm = product.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
+      // Check if the product matches the selected category (if a category is selected)
+      const matchesCategory =
+        selectedCategory === "all" || product.category === selectedCategory;
+
+      // Return true only if both conditions are met
+      return matchesSearchTerm && matchesCategory;
+    })
     .sort(sortProducts);
+
   console.log("filteredProducts", filteredProducts);
   const handleSort = (column: keyof Product) => {
     if (sortBy === column) {
@@ -145,21 +185,25 @@ export default function ProductsPage() {
   };
 
   const [formValues, setFormValues] = useState({
+    id: "",
     name: "",
     price: "",
     category: "",
-    stock: "",
     description: "",
     skuCode: "",
     brand: "",
+    stock: "",
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [categoryFormValues, setCategoryFormValues] = useState({
+    name: "",
+    skuCode: "",
+  });
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
+  ) => {
     const { id, value } = e.target;
-    setFormValues((prev) => ({
-      ...prev,
-      [id]: value,
-    }));
+    setFormValues((prevValues) => ({ ...prevValues, [id]: value }));
   };
 
   const handleSave = async () => {
@@ -174,8 +218,9 @@ export default function ProductsPage() {
         skuCode: formValues.name.toUpperCase().replace(" ", "-"),
         category: formValues.category,
         price: parseFloat(formValues.price),
-        stock: parseInt(formValues.stock),
+        stock: parseInt(formValues.stock, 10),
         status: "availiable",
+        last_updated: new Date().toISOString().split("T")[0],
         brand: formValues.brand,
         description: formValues.description,
         image: "https://via.placeholder.com/150",
@@ -198,6 +243,7 @@ export default function ProductsPage() {
 
       // Clear form fields
       setFormValues({
+        id: "",
         name: "",
         price: "",
         category: "",
@@ -211,6 +257,107 @@ export default function ProductsPage() {
     }
   };
 
+  const handleCategorySave = async () => {
+    console.log(
+      "Saving category........................................................."
+    );
+    console.log("Saving category:", categoryFormValues);
+    try {
+      const newCategory: Category = {
+        id: (products.length + 1).toString(),
+        name: categoryFormValues.name,
+        skuCode: categoryFormValues.name.toUpperCase().replace(" ", "-"),
+      };
+
+      // Call the API to create the category
+      await createCategory(newCategory);
+
+      // Update local state
+      categories.push(newCategory);
+
+      // Clear form fields
+      setCategoryFormValues({
+        skuCode: "",
+        name: "",
+      });
+    } catch (error) {
+      console.error("Error creating category:", error);
+    }
+  };
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(category);
+  };
+
+  const handleEditClick = (id: string) => {
+    // Find the product with the matching id
+    const selectedProduct = products.find((product) => product.id === id);
+
+    if (selectedProduct) {
+      setFormValues({
+        id: selectedProduct.id,
+        name: selectedProduct.name || "",
+        price: selectedProduct.price?.toString() || "0",
+        category: selectedProduct.category || "",
+        description: selectedProduct.description || "",
+        skuCode: selectedProduct.skuCode || "",
+        stock: selectedProduct.stock?.toString() || "0", // Fallback to "0" if stock is undefined
+        brand: selectedProduct.brand || "",
+      }); // Populate form fields with product details
+      setIsEditDialogOpen(true); // Open the dialog
+    }
+  };
+
+  const handleEditSave = async () => {
+    console.log("Saving product:", formValues);
+    try {
+      const updatedProduct: Product = {
+        id: formValues.id,
+        name: formValues.name,
+        skuCode: formValues.skuCode,
+        category: formValues.category,
+        price: parseFloat(formValues.price),
+        stock: parseInt(formValues.stock, 10),
+        last_updated: new Date().toISOString().split("T")[0],
+        status:
+          parseInt(formValues.stock, 10) === 0
+            ? "Out of Stock"
+            : parseInt(formValues.stock, 10) < 10
+            ? "Low Stock"
+            : "In Stock",
+        brand: formValues.brand,
+        description: formValues.description,
+        image: "https://via.placeholder.com/150",
+        // lastUpdated: new Date().toISOString().split("T")[0],
+      };
+
+      // Call the API to update the product
+      // await updateProduct(updatedProduct);
+
+      // Update local state
+      const updatedProducts = products.map((product) =>
+        product.id === updatedProduct.id ? updatedProduct : product
+      );
+      setProducts(updatedProducts);
+      updateProduct(updatedProduct.id, updatedProduct);
+
+      // Clear form fields
+      setFormValues({
+        id: "",
+        name: "",
+        price: "",
+        category: "",
+        stock: "",
+        description: "",
+        skuCode: "",
+        brand: "",
+      });
+
+      setIsEditDialogOpen(false); // Close the dialog
+    } catch (error) {
+      console.error("Error updating product:", error);
+    }
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -218,7 +365,7 @@ export default function ProductsPage() {
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="outline" className="bg-black text-white">
-              Add Product
+              <IoAddOutline /> Add Product
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
@@ -257,12 +404,20 @@ export default function ProductsPage() {
                 <Label htmlFor="category" className="text-right">
                   Category
                 </Label>
-                <Input
+                <select
                   id="category"
                   value={formValues.category}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                />
+                  onChange={(e) =>
+                    handleInputChange(e as React.ChangeEvent<HTMLSelectElement>)
+                  }
+                  className="col-span-3 border border-gray-300 rounded p-2"
+                >
+                  {categories.map((category, index) => (
+                    <option key={index} value={category.skuCode}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
@@ -323,6 +478,47 @@ export default function ProductsPage() {
         </Dialog>
       </div>
 
+      <div className="flex justify-between items-center mb-6">
+        <Dialog>
+          <DialogTrigger asChild>
+            {/* Button with custom styling */}
+            <Button
+              variant="outline"
+              className="border-black bg-white text-black hover:bg-gray-200 ml-auto flex items-center gap-2"
+            >
+              <IoAddOutline /> Add Category {/* Icon and text */}
+            </Button>
+          </DialogTrigger>
+
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Add Category</DialogTitle>
+              <DialogDescription>
+                Enter Category and click save.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="name" className="text-right">
+                  Category
+                </Label>
+                <Input
+                  id="name"
+                  value={formValues.name}
+                  onChange={handleInputChange}
+                  className="col-span-3"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" onClick={handleCategorySave}>
+                Save
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+
       <div className="flex items-center justify-between mb-4">
         <Input
           placeholder="Search products..."
@@ -338,9 +534,20 @@ export default function ProductsPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem>All Categories</DropdownMenuItem>
-            <DropdownMenuItem>Electronics</DropdownMenuItem>
-            <DropdownMenuItem>Shoes</DropdownMenuItem>
+            <DropdownMenuItem
+              key="all"
+              onSelect={() => handleCategorySelect("all")}
+            >
+              All Categories
+            </DropdownMenuItem>
+            {categories.map((category) => (
+              <DropdownMenuItem
+                key={category.skuCode}
+                onSelect={() => handleCategorySelect(category.skuCode)}
+              >
+                {category.name}
+              </DropdownMenuItem>
+            ))}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -394,7 +601,7 @@ export default function ProductsPage() {
                     {product.status}
                   </span>
                 </TableCell>
-                {/* <TableCell>{product.lastUpdated}</TableCell> */}
+                <TableCell>{product.last_updated}</TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -404,13 +611,136 @@ export default function ProductsPage() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem>Edit</DropdownMenuItem>
-                      <DropdownMenuItem>View Details</DropdownMenuItem>
-                      <DropdownMenuItem className="text-red-600">
+                      <DropdownMenuItem
+                        onClick={() => handleEditClick(product.id)}
+                      >
+                        Edit
+                      </DropdownMenuItem>
+
+                      {/* <DropdownMenuItem>View Details</DropdownMenuItem> */}
+                      <DropdownMenuItem
+                        className="text-red-600"
+                        onClick={async () => {
+                          await deleteProduct(product.id);
+                          setProducts(
+                            products.filter((p) => p.id !== product.id)
+                          );
+                        }}
+                      >
                         Delete
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
+
+                  <Dialog
+                    open={isEditDialogOpen}
+                    onOpenChange={(isOpen) => setIsEditDialogOpen(isOpen)}
+                  >
+                    <DialogContent className="sm:max-w-[425px]">
+                      <DialogHeader>
+                        <DialogTitle>Edit Product</DialogTitle>
+                        <DialogDescription>
+                          Update the product details and click save.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="name" className="text-right">
+                            Name
+                          </Label>
+                          <Input
+                            id="name"
+                            value={formValues.name}
+                            onChange={handleInputChange}
+                            className="col-span-3"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="skuCode" className="text-right">
+                            SKU Code
+                          </Label>
+                          <Input
+                            id="skuCode"
+                            value={formValues.skuCode}
+                            onChange={handleInputChange}
+                            className="col-span-3"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="category" className="text-right">
+                            Category
+                          </Label>
+                          <select
+                            id="category"
+                            value={formValues.category}
+                            onChange={(e) =>
+                              handleInputChange(
+                                e as React.ChangeEvent<HTMLSelectElement>
+                              )
+                            }
+                            className="col-span-3 border border-gray-300 rounded p-2"
+                          >
+                            {categories.map((category, index) => (
+                              <option key={index} value={category.skuCode}>
+                                {category.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="brand" className="text-right">
+                            Brand
+                          </Label>
+                          <Input
+                            id="brand"
+                            value={formValues.brand}
+                            onChange={handleInputChange}
+                            className="col-span-3"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="description" className="text-right">
+                            Description
+                          </Label>
+                          <Input
+                            id="description"
+                            value={formValues.description}
+                            onChange={handleInputChange}
+                            className="col-span-3"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="price" className="text-right">
+                            Price
+                          </Label>
+                          <Input
+                            id="price"
+                            value={formValues.price}
+                            onChange={handleInputChange}
+                            className="col-span-3"
+                            type="number"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="stock" className="text-right">
+                            Stock
+                          </Label>
+                          <Input
+                            id="stock"
+                            value={formValues.stock}
+                            onChange={handleInputChange}
+                            className="col-span-3"
+                            type="number"
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button type="button" onClick={handleEditSave}>
+                          Save
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </TableCell>
               </TableRow>
             ))}
