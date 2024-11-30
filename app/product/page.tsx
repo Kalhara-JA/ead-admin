@@ -38,15 +38,21 @@ import {
   deleteProduct,
   fetchCategories,
   fetchProducts,
+  updateImage,
   updateProduct,
 } from "../../services/productService";
 import { Category, Product } from "@/Type";
 import AddProduct from "./addProduct";
 import AddCategory from "./addCategory";
 import EditProductDialog from "./editProduct";
+import {
+  CldUploadWidget,
+  CloudinaryUploadWidgetInfo,
+  CloudinaryUploadWidgetResults,
+} from "next-cloudinary";
+import { FaCloudUploadAlt } from "react-icons/fa";
 
-const products: Product[] = [
-];
+const products: Product[] = [];
 
 export default function ProductsPage() {
   const [sortBy, setSortBy] = useState<keyof Product>("name");
@@ -190,7 +196,7 @@ export default function ProductsPage() {
         updatedAt: new Date().toISOString().split("T")[0],
         brand: formValues.brand,
         description: formValues.description,
-        image: "https://via.placeholder.com/150",
+        image: "",
 
         // stock: parseInt(formValues.stock, 10),
         // status:
@@ -277,6 +283,8 @@ export default function ProductsPage() {
     }
   };
 
+  const [image, setImage] = useState<string | null>(null);
+
   const handleEditSave = async () => {
     console.log("Saving product:", formValues);
     try {
@@ -296,7 +304,7 @@ export default function ProductsPage() {
             : "In Stock",
         brand: formValues.brand,
         description: formValues.description,
-        image: "https://via.placeholder.com/150",
+        image: image || "",
         // lastUpdated: new Date().toISOString().split("T")[0],
       };
 
@@ -410,17 +418,15 @@ export default function ProductsPage() {
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </div>
               </TableHead>
-              {/* <TableHead
+
+              {/* <TableHead>Status</TableHead>  */}
+              <TableHead>Last Updated</TableHead>
+              <TableHead
                 onClick={() => handleSort("stock")}
                 className="cursor-pointer"
               >
-                <div className="flex items-center">
-                  Stock
-                  <ArrowUpDown className="ml-2 h-4 w-4" />
-                </div>
+                <div className="flex items-center">Image</div>
               </TableHead>
-              <TableHead>Status</TableHead> */}
-              <TableHead>Last Updated</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -430,13 +436,81 @@ export default function ProductsPage() {
                 <TableCell>{product.name}</TableCell>
                 <TableCell>{product.category}</TableCell>
                 <TableCell>${product.price.toFixed(2)}</TableCell>
-                {/* <TableCell>{product.stock}</TableCell>
-                <TableCell>
+
+                {/* <TableCell>
                   <span className={getStatusColor(product.status)}>
                     {product.status}
                   </span>
-                </TableCell> */}
+                </TableCell>  */}
                 <TableCell>{product.updatedAt}</TableCell>
+                <TableCell>
+                  {" "}
+                  <CldUploadWidget
+                    uploadPreset="peu0blg2"
+                    onOpen={() => {
+                      console.log("isPhotographer");
+                    }}
+                    onSuccess={(results: CloudinaryUploadWidgetResults) => {
+                      const uploadedResult =
+                        results.info as CloudinaryUploadWidgetInfo;
+                      const profileImageURL = {
+                        image: uploadedResult.secure_url,
+                      };
+                      console.log("profileImageURL", profileImageURL);
+                      updateImage(product.id, profileImageURL.image);
+                      setImage(profileImageURL.image);
+                    }}
+                    options={{
+                      tags: ["organization image"],
+                      sources: ["local"],
+                      googleApiKey: "<image_search_google_api_key>",
+                      showAdvancedOptions: false,
+                      cropping: true,
+                      multiple: false,
+                      showSkipCropButton: false,
+                      croppingAspectRatio: 0.75,
+                      croppingDefaultSelectionRatio: 0.75,
+                      croppingShowDimensions: true,
+                      croppingCoordinatesMode: "custom",
+                      defaultSource: "local",
+                      resourceType: "image",
+                      folder: "organization",
+                      styles: {
+                        palette: {
+                          window: "#ffffff",
+                          sourceBg: "#f4f4f5",
+                          windowBorder: "#90a0b3",
+                          tabIcon: "#000000",
+                          inactiveTabIcon: "#555a5f",
+                          menuIcons: "#555a5f",
+                          link: "#000000",
+                          action: "#000000",
+                          inProgress: "#464646",
+                          complete: "#000000",
+                          error: "#cc0000",
+                          textDark: "#000000",
+                          textLight: "#fcfffd",
+                          theme: "white",
+                        },
+                      },
+                    }}
+                  >
+                    {({ open }) => (
+                      <button
+                        className=" border border-[#0c2735] rounded-2xl border-size-2"
+                        type="button"
+                        onClick={() => {
+                          open();
+                        }}
+                      >
+                        <div className="p-2 w-full   lg:w-full text-black font-semibold flex items-center justify-center gap-2 bg-[#ffffff]  rounded-2xl">
+                          <FaCloudUploadAlt />
+                          Upload Image
+                        </div>
+                      </button>
+                    )}
+                  </CldUploadWidget>
+                </TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

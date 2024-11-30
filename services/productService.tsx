@@ -69,16 +69,41 @@ export const deleteProduct = async (id: string) => {
 };
 
 export const updateProduct = async (id: string, product: Product) => {
-  console.log("idddddddddddddddddddd..................................................",id);
+  console.log(
+    "idddddddddddddddddddd..................................................",
+    id
+  );
   try {
     const response = await axiosInstance.put(
       `${process.env.NEXT_PUBLIC_API_URL}/v1/products/${id}`,
       product
     );
-    console.log("updatinggggg..................................................",response);
+    console.log(
+      "updatinggggg..................................................",
+      response
+    );
     return response.data;
   } catch (error) {
     console.error("Error updating product:", error);
+    throw error;
+  }
+};
+
+export const updateImage = async (id: string, image: String) => {
+  console.log(
+    "idddddddddddddddddddd..................................................",
+    id
+  );
+  console.log("image", image);
+  try {
+    const response = await axiosInstance.put(
+      `${process.env.NEXT_PUBLIC_API_URL}/v1/products/updateImage/${id}`,
+      image
+    );
+    console.log(response);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating image:", error);
     throw error;
   }
 };
@@ -96,4 +121,3 @@ export const getQuantityOfAProduct = async (skuCode: string) => {
     throw error;
   }
 };
-
