@@ -3,9 +3,9 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CircleArrowLeft, Truck, CheckCircle, Loader, AlertTriangle, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { deliverOrderById, fetchOrderByOrderNumber, shipOrderById } from "@/app/api/order/route";
 //import "./OrderDetailsPage.css"; // Import custom CSS for scroll styling
 import toast, { Toaster } from 'react-hot-toast';
+import { deliverOrderById, fetchOrderByOrderNumber, shipOrderById } from "@/services/orderService";
 
 interface Order {
   id: number;

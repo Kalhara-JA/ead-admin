@@ -6,8 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { AlertTriangle, ArrowDown, ArrowUp, CircleAlert, CircleX, ClockAlert, MoreVertical, Package, PackageCheck, PackageX, RotateCcw, Truck } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
-import { fetchAllOrders } from '../api/order/route'
 import { Input } from '@/components/ui/input'
+import { fetchAllOrders } from '@/services/orderService'
 
 interface Order {
   id: number;

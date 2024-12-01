@@ -1,4 +1,3 @@
-import { Inventory, InventoryItem, StockUpdate } from "@/types/inventoryTypes";
 
 import axiosInstance from "@/lib/axiosInstance";
 
