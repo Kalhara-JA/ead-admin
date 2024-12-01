@@ -181,7 +181,7 @@ export default function ProductsPage() {
 
   const handleSave = async () => {
     console.log(
-      "Saving product........................................................."
+      "Saving product.."
     );
     console.log("Saving product:", formValues);
     try {
