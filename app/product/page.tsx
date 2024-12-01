@@ -104,7 +104,7 @@ export default function ProductsPage() {
         setCategories(data);
       } catch (error) {
         console.error(
-          "Error fetching categoriessssssssssssssssssssssssssssssssssssssss:",
+          "Error fetching categories:",
           error
         );
       } finally {
@@ -233,7 +233,7 @@ export default function ProductsPage() {
 
   const handleCategorySave = async () => {
     console.log(
-      "Saving category........................................................."
+      "Saving category.."
     );
     console.log("Saving category:", categoryFormValues);
     try {
@@ -242,7 +242,7 @@ export default function ProductsPage() {
         name: categoryFormValues.name,
         skuCode: categoryFormValues.name.toUpperCase().replace(" ", "-"),
       };
-      console.log("newCategory..........", newCategory);
+      console.log("newCategory", newCategory);
 
       // Call the API to create the category
       await createCategory(newCategory);

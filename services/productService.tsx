@@ -70,7 +70,7 @@ export const deleteProduct = async (id: string) => {
 
 export const updateProduct = async (id: string, product: Product) => {
   console.log(
-    "idddddddddddddddddddd..................................................",
+    "id",
     id
   );
   try {
@@ -79,7 +79,7 @@ export const updateProduct = async (id: string, product: Product) => {
       product
     );
     console.log(
-      "updatinggggg..................................................",
+      "updating..",
       response
     );
     return response.data;
@@ -91,7 +91,7 @@ export const updateProduct = async (id: string, product: Product) => {
 
 export const updateImage = async (id: string, image: String) => {
   console.log(
-    "idddddddddddddddddddd..................................................",
+    "id",
     id
   );
   console.log("image", image);
