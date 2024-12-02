@@ -8,6 +8,7 @@ export const fetchInventory = async () => {
     const response = await axiosInstance.get(
       `${process.env.NEXT_PUBLIC_API_URL}/inventory/all`
     );
+    console.log(response.data);
     return response.data;
   } catch (error) {
     console.error("Error fetching inventory:", error);
@@ -24,6 +25,25 @@ export const fetchInventoryById = async (inventoryId: string) => {
     return response.data;
   } catch (error) {
     console.error("Error fetching inventory item:", error);
+    throw error;
+  }
+};
+
+export const restockInventory = async (skuCode: string, quantity: number) => {
+  try {
+    const response = await axiosInstance.post(
+      `${process.env.NEXT_PUBLIC_API_URL}/inventory/restock`,
+      null,
+      {
+        params: {
+          skuCode,
+          quantity,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error restocking inventory item:", error);
     throw error;
   }
 };
