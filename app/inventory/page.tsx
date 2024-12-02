@@ -28,11 +28,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { fetchInventory, restockInventory } from "../api/inventory/route";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { fetchInventory } from "../api/inventory/route";
 
 interface InventoryItem {
   id: string;
@@ -92,23 +92,55 @@ export default function InventoryPage() {
     return "bg-green-500";
   };
   
+  const transformBackendData = (data: any[]): InventoryItem[] => {
+    return data.map((item) => ({
+      id: item.id.toString(),
+      sku: item.skuCode,
+      name: item.skuCode.replace("_", " ").toUpperCase(), // Mocked name for display
+      currentStock: item.quantity,
+      minimumStock: 10, // Mocked minimum stock
+      maximumStock: 100, // Mocked maximum stock
+      reorderPoint: 20, // Mocked reorder point
+      location: item.location,
+      lastRestocked: "2024-11-01", // Mocked last restocked date
+      status:
+        item.status === "IN_STOCK"
+          ? "In Stock"
+          : item.quantity === 0
+          ? "Out of Stock"
+          : item.quantity > 90
+          ? "Overstock"
+          : "Low Stock",
+    }));
+  };
+
   const loadInventoryData = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await fetchInventory();
-      setInventoryData(data);
+      const rawData = await fetchInventory(); // Assumes this returns the backend object array
+      const transformedData = transformBackendData(rawData);
+      setInventoryData(transformedData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch inventory data');
-      console.error('Error fetching inventory:', err);
+      setError(err instanceof Error ? err.message : "Failed to fetch inventory data");
+      console.error("Error fetching inventory:", err);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const restock=async (inventoryId:string,quantity:number) => {
+    try{
+      await restockInventory(inventoryId,quantity);
+    }catch (err) {
+      
+    }
+  }
+
   useEffect(() => {
     loadInventoryData();
     console.log("Inventory data loaded");
+    console.log(inventoryData);
   }, []);
 
   
@@ -277,7 +309,10 @@ export default function InventoryPage() {
                 </TableCell>
                 <TableCell>{item.lastRestocked}</TableCell>
                 <TableCell>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={()=>{
+                    restock(item.sku,100)
+                    
+                  }}>
                     <RotateCcw className="h-4 w-4 mr-2" />
                     Restock
                   </Button>
