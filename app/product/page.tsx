@@ -38,54 +38,21 @@ import {
   deleteProduct,
   fetchCategories,
   fetchProducts,
+  updateImage,
   updateProduct,
-} from "../api/v1/products/route";
+} from "../../services/productService";
 import { Category, Product } from "@/Type";
+import AddProduct from "./addProduct";
+import AddCategory from "./addCategory";
+import EditProductDialog from "./editProduct";
+import {
+  CldUploadWidget,
+  CloudinaryUploadWidgetInfo,
+  CloudinaryUploadWidgetResults,
+} from "next-cloudinary";
+import { FaCloudUploadAlt } from "react-icons/fa";
 
-const products: Product[] = [
-  {
-    id: "1",
-    name: "Nike Air Max",
-    skuCode: "NKAMX-001",
-    category: "Shoes",
-    price: 199.99,
-    stock: 45,
-    status: "In Stock",
-    brand: "Nike",
-    last_updated: "2021-10-01",
-    description:
-      "The Nike Air Max is a classic sneaker that never goes out of style.",
-    image: "https://via.placeholder.com/150",
-  },
-  {
-    id: "2",
-    name: "Samsung Galaxy S24",
-    skuCode: "SGS24-001",
-    category: "Electronics",
-    price: 999.99,
-    stock: 5,
-    status: "Low Stock",
-    brand: "Samsung",
-    last_updated: "2021-10-01",
-    description:
-      "The Samsung Galaxy S24 is the latest smartphone from Samsung.",
-    image: "https://via.placeholder.com/150",
-  },
-  {
-    id: "3",
-    name: "MacBook Pro",
-    skuCode: "MBP-001",
-    category: "Electronics",
-    price: 1299.99,
-    stock: 0,
-    status: "Out of Stock",
-    brand: "Apple",
-    last_updated: "2021-10-01",
-    description: "The MacBook Pro is a powerful laptop for professionals.",
-    image: "https://via.placeholder.com/150",
-  },
-  // Add more sample products as needed
-];
+const products: Product[] = [];
 
 export default function ProductsPage() {
   const [sortBy, setSortBy] = useState<keyof Product>("name");
@@ -136,7 +103,10 @@ export default function ProductsPage() {
         console.log(data);
         setCategories(data);
       } catch (error) {
-        console.error("Error fetching categories:", error);
+        console.error(
+          "Error fetching categories:",
+          error
+        );
       } finally {
         setLoading(false);
       }
@@ -192,6 +162,7 @@ export default function ProductsPage() {
     description: "",
     skuCode: "",
     brand: "",
+    updatedAt: "",
     stock: "",
   });
 
@@ -203,12 +174,14 @@ export default function ProductsPage() {
     e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
   ) => {
     const { id, value } = e.target;
+    console.log("id", id);
+    console.log("value", value);
     setFormValues((prevValues) => ({ ...prevValues, [id]: value }));
   };
 
   const handleSave = async () => {
     console.log(
-      "Saving product........................................................."
+      "Saving product.."
     );
     console.log("Saving product:", formValues);
     try {
@@ -220,10 +193,10 @@ export default function ProductsPage() {
         price: parseFloat(formValues.price),
         stock: parseInt(formValues.stock, 10),
         status: "availiable",
-        last_updated: new Date().toISOString().split("T")[0],
+        updatedAt: new Date().toISOString().split("T")[0],
         brand: formValues.brand,
         description: formValues.description,
-        image: "https://via.placeholder.com/150",
+        image: "",
 
         // stock: parseInt(formValues.stock, 10),
         // status:
@@ -250,6 +223,7 @@ export default function ProductsPage() {
         stock: "",
         description: "",
         skuCode: "",
+        updatedAt: "",
         brand: "",
       });
     } catch (error) {
@@ -259,7 +233,7 @@ export default function ProductsPage() {
 
   const handleCategorySave = async () => {
     console.log(
-      "Saving category........................................................."
+      "Saving category.."
     );
     console.log("Saving category:", categoryFormValues);
     try {
@@ -268,6 +242,7 @@ export default function ProductsPage() {
         name: categoryFormValues.name,
         skuCode: categoryFormValues.name.toUpperCase().replace(" ", "-"),
       };
+      console.log("newCategory", newCategory);
 
       // Call the API to create the category
       await createCategory(newCategory);
@@ -277,8 +252,8 @@ export default function ProductsPage() {
 
       // Clear form fields
       setCategoryFormValues({
-        skuCode: "",
         name: "",
+        skuCode: "",
       });
     } catch (error) {
       console.error("Error creating category:", error);
@@ -302,10 +277,13 @@ export default function ProductsPage() {
         skuCode: selectedProduct.skuCode || "",
         stock: selectedProduct.stock?.toString() || "0", // Fallback to "0" if stock is undefined
         brand: selectedProduct.brand || "",
+        updatedAt: selectedProduct.updatedAt || "",
       }); // Populate form fields with product details
       setIsEditDialogOpen(true); // Open the dialog
     }
   };
+
+  const [image, setImage] = useState<string | null>(null);
 
   const handleEditSave = async () => {
     console.log("Saving product:", formValues);
@@ -317,7 +295,7 @@ export default function ProductsPage() {
         category: formValues.category,
         price: parseFloat(formValues.price),
         stock: parseInt(formValues.stock, 10),
-        last_updated: new Date().toISOString().split("T")[0],
+        updatedAt: new Date().toISOString().split("T")[0],
         status:
           parseInt(formValues.stock, 10) === 0
             ? "Out of Stock"
@@ -326,7 +304,7 @@ export default function ProductsPage() {
             : "In Stock",
         brand: formValues.brand,
         description: formValues.description,
-        image: "https://via.placeholder.com/150",
+        image: image || "",
         // lastUpdated: new Date().toISOString().split("T")[0],
       };
 
@@ -350,6 +328,7 @@ export default function ProductsPage() {
         description: "",
         skuCode: "",
         brand: "",
+        updatedAt: "",
       });
 
       setIsEditDialogOpen(false); // Close the dialog
@@ -362,161 +341,25 @@ export default function ProductsPage() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Products</h1>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="bg-black text-white">
-              <IoAddOutline /> Add Product
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Add Product</DialogTitle>
-              <DialogDescription>
-                Enter product details and click save.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">
-                  Name
-                </Label>
-                <Input
-                  id="name"
-                  value={formValues.name}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                />
-              </div>
-
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="skuCode" className="text-right">
-                  skuCode
-                </Label>
-                <Input
-                  id="skuCode"
-                  value={formValues.skuCode}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                />
-              </div>
-
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="category" className="text-right">
-                  Category
-                </Label>
-                <select
-                  id="category"
-                  value={formValues.category}
-                  onChange={(e) =>
-                    handleInputChange(e as React.ChangeEvent<HTMLSelectElement>)
-                  }
-                  className="col-span-3 border border-gray-300 rounded p-2"
-                >
-                  {categories.map((category, index) => (
-                    <option key={index} value={category.skuCode}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor=" brand" className="text-right">
-                  brand
-                </Label>
-                <Input
-                  id="brand"
-                  value={formValues.brand}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                />
-              </div>
-
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="description" className="text-right">
-                  Description
-                </Label>
-                <Input
-                  id="description"
-                  value={formValues.description}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                />
-              </div>
-
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="price" className="text-right">
-                  Price
-                </Label>
-                <Input
-                  id="price"
-                  value={formValues.price}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                  type="number"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="stock" className="text-right">
-                  Stock
-                </Label>
-                <Input
-                  id="stock"
-                  value={formValues.stock}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                  type="number"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="button" onClick={handleSave}>
-                Save
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <AddProduct
+          formValues={formValues}
+          handleInputChange={handleInputChange}
+          handleSave={handleSave}
+          categories={categories}
+        />
       </div>
 
       <div className="flex justify-between items-center mb-6">
-        <Dialog>
-          <DialogTrigger asChild>
-            {/* Button with custom styling */}
-            <Button
-              variant="outline"
-              className="border-black bg-white text-black hover:bg-gray-200 ml-auto flex items-center gap-2"
-            >
-              <IoAddOutline /> Add Category {/* Icon and text */}
-            </Button>
-          </DialogTrigger>
-
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Add Category</DialogTitle>
-              <DialogDescription>
-                Enter Category and click save.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">
-                  Category
-                </Label>
-                <Input
-                  id="name"
-                  value={formValues.name}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="button" onClick={handleCategorySave}>
-                Save
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <AddCategory
+          formValues={categoryFormValues}
+          handleInputChange={(e) =>
+            setCategoryFormValues({
+              ...categoryFormValues,
+              [e.target.id]: e.target.value,
+            })
+          }
+          handleCategorySave={handleCategorySave}
+        />
       </div>
 
       <div className="flex items-center justify-between mb-4">
@@ -575,17 +418,15 @@ export default function ProductsPage() {
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </div>
               </TableHead>
+
+              {/* <TableHead>Status</TableHead>  */}
+              <TableHead>Last Updated</TableHead>
               <TableHead
                 onClick={() => handleSort("stock")}
                 className="cursor-pointer"
               >
-                <div className="flex items-center">
-                  Stock
-                  <ArrowUpDown className="ml-2 h-4 w-4" />
-                </div>
+                <div className="flex items-center">Image</div>
               </TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Last Updated</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -595,13 +436,81 @@ export default function ProductsPage() {
                 <TableCell>{product.name}</TableCell>
                 <TableCell>{product.category}</TableCell>
                 <TableCell>${product.price.toFixed(2)}</TableCell>
-                <TableCell>{product.stock}</TableCell>
-                <TableCell>
+
+                {/* <TableCell>
                   <span className={getStatusColor(product.status)}>
                     {product.status}
                   </span>
+                </TableCell>  */}
+                <TableCell>{product.updatedAt}</TableCell>
+                <TableCell>
+                  {" "}
+                  <CldUploadWidget
+                    uploadPreset="peu0blg2"
+                    onOpen={() => {
+                      console.log("isPhotographer");
+                    }}
+                    onSuccess={(results: CloudinaryUploadWidgetResults) => {
+                      const uploadedResult =
+                        results.info as CloudinaryUploadWidgetInfo;
+                      const profileImageURL = {
+                        image: uploadedResult.secure_url,
+                      };
+                      console.log("profileImageURL", profileImageURL);
+                      updateImage(product.id, profileImageURL.image);
+                      setImage(profileImageURL.image);
+                    }}
+                    options={{
+                      tags: ["organization image"],
+                      sources: ["local"],
+                      googleApiKey: "<image_search_google_api_key>",
+                      showAdvancedOptions: false,
+                      cropping: true,
+                      multiple: false,
+                      showSkipCropButton: false,
+                      croppingAspectRatio: 0.75,
+                      croppingDefaultSelectionRatio: 0.75,
+                      croppingShowDimensions: true,
+                      croppingCoordinatesMode: "custom",
+                      defaultSource: "local",
+                      resourceType: "image",
+                      folder: "organization",
+                      styles: {
+                        palette: {
+                          window: "#ffffff",
+                          sourceBg: "#f4f4f5",
+                          windowBorder: "#90a0b3",
+                          tabIcon: "#000000",
+                          inactiveTabIcon: "#555a5f",
+                          menuIcons: "#555a5f",
+                          link: "#000000",
+                          action: "#000000",
+                          inProgress: "#464646",
+                          complete: "#000000",
+                          error: "#cc0000",
+                          textDark: "#000000",
+                          textLight: "#fcfffd",
+                          theme: "white",
+                        },
+                      },
+                    }}
+                  >
+                    {({ open }) => (
+                      <button
+                        className=" border border-[#0c2735] rounded-2xl border-size-2"
+                        type="button"
+                        onClick={() => {
+                          open();
+                        }}
+                      >
+                        <div className="p-2 w-full   lg:w-full text-black font-semibold flex items-center justify-center gap-2 bg-[#ffffff]  rounded-2xl">
+                          <FaCloudUploadAlt />
+                          Upload Image
+                        </div>
+                      </button>
+                    )}
+                  </CldUploadWidget>
                 </TableCell>
-                <TableCell>{product.last_updated}</TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -632,115 +541,14 @@ export default function ProductsPage() {
                     </DropdownMenuContent>
                   </DropdownMenu>
 
-                  <Dialog
-                    open={isEditDialogOpen}
-                    onOpenChange={(isOpen) => setIsEditDialogOpen(isOpen)}
-                  >
-                    <DialogContent className="sm:max-w-[425px]">
-                      <DialogHeader>
-                        <DialogTitle>Edit Product</DialogTitle>
-                        <DialogDescription>
-                          Update the product details and click save.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="name" className="text-right">
-                            Name
-                          </Label>
-                          <Input
-                            id="name"
-                            value={formValues.name}
-                            onChange={handleInputChange}
-                            className="col-span-3"
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="skuCode" className="text-right">
-                            SKU Code
-                          </Label>
-                          <Input
-                            id="skuCode"
-                            value={formValues.skuCode}
-                            onChange={handleInputChange}
-                            className="col-span-3"
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="category" className="text-right">
-                            Category
-                          </Label>
-                          <select
-                            id="category"
-                            value={formValues.category}
-                            onChange={(e) =>
-                              handleInputChange(
-                                e as React.ChangeEvent<HTMLSelectElement>
-                              )
-                            }
-                            className="col-span-3 border border-gray-300 rounded p-2"
-                          >
-                            {categories.map((category, index) => (
-                              <option key={index} value={category.skuCode}>
-                                {category.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="brand" className="text-right">
-                            Brand
-                          </Label>
-                          <Input
-                            id="brand"
-                            value={formValues.brand}
-                            onChange={handleInputChange}
-                            className="col-span-3"
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="description" className="text-right">
-                            Description
-                          </Label>
-                          <Input
-                            id="description"
-                            value={formValues.description}
-                            onChange={handleInputChange}
-                            className="col-span-3"
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="price" className="text-right">
-                            Price
-                          </Label>
-                          <Input
-                            id="price"
-                            value={formValues.price}
-                            onChange={handleInputChange}
-                            className="col-span-3"
-                            type="number"
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="stock" className="text-right">
-                            Stock
-                          </Label>
-                          <Input
-                            id="stock"
-                            value={formValues.stock}
-                            onChange={handleInputChange}
-                            className="col-span-3"
-                            type="number"
-                          />
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button type="button" onClick={handleEditSave}>
-                          Save
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
+                  <EditProductDialog
+                    isEditDialogOpen={isEditDialogOpen}
+                    formValues={formValues}
+                    categories={categories}
+                    handleInputChange={handleInputChange}
+                    handleEditSave={handleEditSave}
+                    setIsEditDialogOpen={setIsEditDialogOpen}
+                  />
                 </TableCell>
               </TableRow>
             ))}
