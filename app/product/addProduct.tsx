@@ -1,4 +1,5 @@
-
+import React, { useState } from "react";
+import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,7 +12,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import React from "react";
 import { IoAddOutline } from "react-icons/io5";
 
 interface AddProductProps {
@@ -21,6 +21,16 @@ interface AddProductProps {
   ) => void;
   handleSave: () => void;
   categories: { skuCode: string; name: string }[];
+  products: {
+    name: string;
+    skuCode: string;
+    category: string;
+    brand: string;
+    description: string;
+    price: number;
+    stock: number;
+    updatedAt: String;
+  }[];
 }
 
 const AddProduct: React.FC<AddProductProps> = ({
@@ -28,7 +38,53 @@ const AddProduct: React.FC<AddProductProps> = ({
   handleInputChange,
   handleSave,
   categories,
+  products,
 }) => {
+  const [errors, setErrors] = useState<any>({});
+
+  const validate = () => {
+    const newErrors: any = {};
+    if (!formValues.name) newErrors.name = "Name is required";
+    if (!formValues.skuCode) newErrors.skuCode = "SKU Code is required";
+    if (!formValues.category) newErrors.category = "Category is required";
+    if (!formValues.brand) newErrors.brand = "Brand is required";
+    if (!formValues.description)
+      newErrors.description = "Description is required";
+    if (!formValues.price) {
+      newErrors.price = "Price is required";
+    } else if (Number(formValues.price) <= 0) {
+      newErrors.price = "Price must be a positive value";
+    }
+    if (!formValues.stock && formValues.stock !== 0) {
+      newErrors.stock = "Stock is required";
+    } else if (Number(formValues.stock) < 0) {
+      newErrors.stock = "Stock cannot be negative";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = () => {
+    // Check if the SKU code already exists in the products array
+    const isSkuCodeExists = products.some(
+      (product) => product.skuCode === formValues.skuCode
+    );
+  
+    if (isSkuCodeExists) {
+      toast.error("SKU Code already exists!");
+      return;
+    }
+  
+    // Validate the form fields
+    if (validate()) {
+      handleSave();
+      toast.success("Product added successfully!");
+    } else {
+      toast.error("Please fill in all required fields.");
+    }
+  };
+  
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -54,10 +110,13 @@ const AddProduct: React.FC<AddProductProps> = ({
               onChange={handleInputChange}
               className="col-span-3"
             />
+            {errors.name && (
+              <p className="col-span-4 text-red-500">{errors.name}</p>
+            )}
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="skuCode" className="text-right">
-              skuCode
+              SKU Code
             </Label>
             <Input
               id="skuCode"
@@ -65,6 +124,9 @@ const AddProduct: React.FC<AddProductProps> = ({
               onChange={handleInputChange}
               className="col-span-3"
             />
+            {errors.skuCode && (
+              <p className="col-span-4 text-red-500">{errors.skuCode}</p>
+            )}
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="category" className="text-right">
@@ -76,12 +138,16 @@ const AddProduct: React.FC<AddProductProps> = ({
               onChange={handleInputChange}
               className="col-span-3 border border-gray-300 rounded p-2"
             >
+              <option value="">Select a category</option>
               {categories.map((category, index) => (
                 <option key={index} value={category.skuCode}>
                   {category.name}
                 </option>
               ))}
             </select>
+            {errors.category && (
+              <p className="col-span-4 text-red-500">{errors.category}</p>
+            )}
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="brand" className="text-right">
@@ -93,6 +159,9 @@ const AddProduct: React.FC<AddProductProps> = ({
               onChange={handleInputChange}
               className="col-span-3"
             />
+            {errors.brand && (
+              <p className="col-span-4 text-red-500">{errors.brand}</p>
+            )}
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="description" className="text-right">
@@ -104,6 +173,9 @@ const AddProduct: React.FC<AddProductProps> = ({
               onChange={handleInputChange}
               className="col-span-3"
             />
+            {errors.description && (
+              <p className="col-span-4 text-red-500">{errors.description}</p>
+            )}
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="price" className="text-right">
@@ -116,6 +188,9 @@ const AddProduct: React.FC<AddProductProps> = ({
               className="col-span-3"
               type="number"
             />
+            {errors.price && (
+              <p className="col-span-4 text-red-500">{errors.price}</p>
+            )}
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="stock" className="text-right">
@@ -128,10 +203,13 @@ const AddProduct: React.FC<AddProductProps> = ({
               className="col-span-3"
               type="number"
             />
+            {errors.stock && (
+              <p className="col-span-4 text-red-500">{errors.stock}</p>
+            )}
           </div>
         </div>
         <DialogFooter>
-          <Button type="button" onClick={handleSave}>
+          <Button type="button" onClick={handleSubmit}>
             Save
           </Button>
         </DialogFooter>

@@ -89,24 +89,28 @@ export const updateProduct = async (id: string, product: Product) => {
   }
 };
 
-export const updateImage = async (id: string, image: String) => {
-  console.log(
-    "id",
-    id
-  );
-  console.log("image", image);
+export const updateImage = async (id: string, image: string) => {
   try {
+    console.log("Updating image with ID:", id);
+    console.log("Image URL:", image);
     const response = await axiosInstance.put(
       `${process.env.NEXT_PUBLIC_API_URL}/v1/products/updateImage/${id}`,
-      image
+      image, // Pass the string directly
+      {
+        headers: {
+          'Content-Type': 'text/plain', // Specify plain text if needed
+        },
+      }
     );
-    console.log(response);
+    console.log("Image update response:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error updating image:", error);
     throw error;
   }
 };
+
+
 
 export const getQuantityOfAProduct = async (skuCode: string) => {
   console.log("skuCode", skuCode);
