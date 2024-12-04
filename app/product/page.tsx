@@ -64,6 +64,8 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [imageURL, setImageURL] = useState<string | null>(null);
 
   const sortProducts = (a: Product, b: Product) => {
     const aValue = a[sortBy];
@@ -81,6 +83,7 @@ export default function ProductsPage() {
 
     return 0;
   };
+  console.log("productsdddddddddddd   ", products);  
   useEffect(() => {
     const getProducts = async () => {
       try {
@@ -335,7 +338,20 @@ export default function ProductsPage() {
       console.error("Error updating product:", error);
     }
   };
+  useEffect(() => {
+    if (selectedProductId && imageURL) {
+      // Make the API call to update the image once both productId and imageURL are set
+      updateImage(selectedProductId, imageURL);
+    }
+  }, [selectedProductId, imageURL]);
 
+  const handleImageUpload = (
+    productId: string,
+    uploadedImageURL: string
+  ) => {
+    setSelectedProductId(productId);
+    setImageURL(uploadedImageURL);
+  };
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -455,7 +471,7 @@ export default function ProductsPage() {
                       const uploadedResult = results.info as CloudinaryUploadWidgetInfo;
                       const profileImageURL = uploadedResult.secure_url; // Directly get the URL
                       console.log("Uploaded Image URL:", profileImageURL);
-                      
+                      console.log("Product IDtghtrhshhhhhhhhhhh:", product.id);
                       // Update the image
                       updateImage(product.id, profileImageURL);
                       
