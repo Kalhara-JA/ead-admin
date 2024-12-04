@@ -6,7 +6,7 @@ export const fetchAllOrders = async () => {
     
     try {
       const response = await axiosInstance.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/orders`
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/orders`
       );
       return response.data;
     } catch (error) {
@@ -19,7 +19,7 @@ export const fetchAllOrders = async () => {
 export const fetchOrderByOrderNumber = async (orderNumber:string) => {
   try {
     const response = await axiosInstance.get(
-      `${process.env.NEXT_PUBLIC_API_URL}/orders/${orderNumber}`
+      `${process.env.NEXT_PUBLIC_API_URL}/v1/orders/${orderNumber}`
     );
     return response.data;
   } catch (error) {
@@ -33,7 +33,7 @@ export const fetchOrderByOrderNumber = async (orderNumber:string) => {
 export const deliverOrderById = async (orderid:number) => {
   try {
     const response = await axiosInstance.put(
-      `${process.env.NEXT_PUBLIC_API_URL}/orders/${orderid}/deliver`
+      `${process.env.NEXT_PUBLIC_API_URL}/v1/orders/${orderid}/deliver`
     );
     return response.data;
   } catch (error:any) {
@@ -46,7 +46,7 @@ export const deliverOrderById = async (orderid:number) => {
 export const shipOrderById = async (orderid:number) => {
   try {
     const response = await axiosInstance.put(
-      `${process.env.NEXT_PUBLIC_API_URL}/orders/${orderid}/ship`
+      `${process.env.NEXT_PUBLIC_API_URL}/v1/orders/${orderid}/ship`
     );
     return response.data;
   } catch (error:any) {
