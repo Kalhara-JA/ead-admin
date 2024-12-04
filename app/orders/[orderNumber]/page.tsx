@@ -145,18 +145,18 @@ function OrderDetailsPage({ params }: { params: { orderNumber: string } }) {
         {/* Status Update Buttons */}
         <div className="mb-8">
           {/* <h3 className="text-lg font-semibold text-gray-800 mb-4">Update Delivery Status</h3> */}
-          {order &&
+          {order && order.paymentStatus=="PAID" &&
           <div className="flex space-x-4 w-full ">
             <Button className="flex-grow" variant="outline" size="sm" onClick={() => openConfirmationModal("PENDING")} disabled={order?.deliveryStatus=="PENDING"|| order?.deliveryStatus=="DELIVERED"||order?.deliveryStatus=="SHIPPED" }>
-              {(order?.deliveryStatus=="PENDING" || order?.deliveryStatus=="SHIPPED" || order?.deliveryStatus=="DELIVERED") ?<CheckCircle className="h-4 w-4 mr-2 text-green-500" />:<LoaderCircle className="h-4 w-4 mr-2" />}
+              {(order?.deliveryStatus=="PENDING" || order?.deliveryStatus=="SHIPPED" || order?.deliveryStatus=="DELIVERED") ?<CheckCircle className="h-4 w-4 mr-2 text-green-500" />:<LoaderCircle className="h-4 w-4 mr-2 text-blue-500" />}
               Pending
             </Button>
             <Button className="flex-grow" variant="outline" size="sm" onClick={() => openConfirmationModal("SHIPPED")} disabled={order?.deliveryStatus=="DELIVERED" || order?.deliveryStatus=="SHIPPED" }>
-            {(order?.deliveryStatus=="SHIPPED" || order?.deliveryStatus=="DELIVERED" ) ?<CheckCircle className="h-4 w-4 mr-2" />:<LoaderCircle className="h-4 w-4 mr-2" />}
+            {(order?.deliveryStatus=="SHIPPED" || order?.deliveryStatus=="DELIVERED" ) ?<CheckCircle  className="h-4 w-4 mr-2 text-green-500" />:<LoaderCircle className="h-4 w-4 mr-2 text-blue-500" />}
               Shipped
             </Button>
             <Button className="flex-grow" variant="outline" size="sm" onClick={() => openConfirmationModal("DELIVERED")} disabled={order?.deliveryStatus=="DELIVERED"}>
-            {order?.deliveryStatus=="DELIVERED"  ?<CheckCircle className="h-4 w-4 mr-2" />:<LoaderCircle className="h-4 w-4 mr-2" />}
+            {order?.deliveryStatus=="DELIVERED"  ?<CheckCircle className="h-4 w-4 mr-2 text-green-500" />:<LoaderCircle className="h-4 w-4 mr-2 text-blue-500" />}
               Delivered
             </Button>
           
