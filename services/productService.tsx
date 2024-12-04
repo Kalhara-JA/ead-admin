@@ -70,19 +70,13 @@ export const deleteProduct = async (id: string) => {
 };
 
 export const updateProduct = async (id: string, product: Product) => {
-  console.log(
-    "id",
-    id
-  );
+  console.log("id", id);
   try {
     const response = await axiosInstance.put(
       `${process.env.NEXT_PUBLIC_API_URL}/v1/products/${id}`,
       product
     );
-    console.log(
-      "updating..",
-      response
-    );
+    console.log("updating..", response);
     return response.data;
   } catch (error) {
     console.error("Error updating product:", error);
@@ -99,7 +93,7 @@ export const updateImage = async (id: string, image: string) => {
       image, // Pass the string directly
       {
         headers: {
-          'Content-Type': 'text/plain', // Specify plain text if needed
+          "Content-Type": "text/plain", // Specify plain text if needed
         },
       }
     );
@@ -110,8 +104,6 @@ export const updateImage = async (id: string, image: string) => {
     throw error;
   }
 };
-
-
 
 export const getQuantityOfAProduct = async (skuCode: string) => {
   console.log("skuCode", skuCode);
