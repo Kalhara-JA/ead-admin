@@ -1,5 +1,6 @@
-import axiosInstance from "@/lib/axiosInstance";
 import { Category, Product } from "@/Type";
+
+import axiosInstance from "@/lib/axiosInstance";
 
 export const fetchProducts = async () => {
   try {

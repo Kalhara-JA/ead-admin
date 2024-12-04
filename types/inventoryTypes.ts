@@ -32,3 +32,10 @@ export interface InventoryItem {
   }
 
 
+  enum InventoryStatus {
+    InStock = 'in_stock',
+    LowStock = 'low_stock',
+    OutOfStock = 'out_of_stock',
+  }
+
+
