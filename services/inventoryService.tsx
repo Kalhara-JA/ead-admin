@@ -6,7 +6,7 @@ import axiosInstance from "@/lib/axiosInstance";
 export const fetchInventory = async () => {
   try {
     const response = await axiosInstance.get(
-      `${process.env.NEXT_PUBLIC_API_URL}/inventory/all`
+      `${process.env.NEXT_PUBLIC_API_URL}/v1/inventory/all`
     );
     console.log(response.data);
     return response.data;
@@ -20,7 +20,7 @@ export const fetchInventory = async () => {
 export const fetchInventoryById = async (inventoryId: string) => {
   try {
     const response = await axiosInstance.get(
-      `${process.env.NEXT_PUBLIC_API_URL}/inventory/${inventoryId}`
+      `${process.env.NEXT_PUBLIC_API_URL}/v1/inventory/${inventoryId}`
     );
     return response.data;
   } catch (error) {
@@ -32,7 +32,7 @@ export const fetchInventoryById = async (inventoryId: string) => {
 export const restockInventory = async (skuCode: string, quantity: number) => {
   try {
     const response = await axiosInstance.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/inventory/restock`,
+      `${process.env.NEXT_PUBLIC_API_URL}/v1/inventory/restock`,
       null,
       {
         params: {
@@ -52,7 +52,7 @@ export const restockInventory = async (skuCode: string, quantity: number) => {
 export const createInventoryItem = async (item: InventoryItem) => {
   try {
     const response = await axiosInstance.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/inventory`,
+      `${process.env.NEXT_PUBLIC_API_URL}/v1/inventory`,
       item
     );
     return response.data;
@@ -69,7 +69,7 @@ export const updateInventoryItem = async (
 ) => {
   try {
     const response = await axiosInstance.put(
-      `${process.env.NEXT_PUBLIC_API_URL}/inventory/${inventoryId}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/v1/inventory/${inventoryId}`,
       updates
     );
     return response.data;
@@ -83,7 +83,7 @@ export const updateInventoryItem = async (
 export const updateStockLevel = async (stockUpdate: StockUpdate) => {
   try {
     const response = await axiosInstance.patch(
-      `${process.env.NEXT_PUBLIC_API_URL}/inventory/${stockUpdate.inventoryId}/stock`,
+      `${process.env.NEXT_PUBLIC_API_URL}/v1/inventory/${stockUpdate.inventoryId}/stock`,
       stockUpdate
     );
     return response.data;
@@ -97,7 +97,7 @@ export const updateStockLevel = async (stockUpdate: StockUpdate) => {
 export const deleteInventoryItem = async (inventoryId: string) => {
   try {
     const response = await axiosInstance.delete(
-      `${process.env.NEXT_PUBLIC_API_URL}/inventory/${inventoryId}`
+      `${process.env.NEXT_PUBLIC_API_URL}/v1/inventory/${inventoryId}`
     );
     return response.data;
   } catch (error) {
@@ -110,7 +110,7 @@ export const deleteInventoryItem = async (inventoryId: string) => {
 export const checkStockAvailability = async (inventoryId: string) => {
   try {
     const response = await axiosInstance.get(
-      `${process.env.NEXT_PUBLIC_API_URL}/inventory/${inventoryId}/availability`
+      `${process.env.NEXT_PUBLIC_API_URL}/v1/inventory/${inventoryId}/availability`
     );
     return response.data;
   } catch (error) {
@@ -123,7 +123,7 @@ export const checkStockAvailability = async (inventoryId: string) => {
 export const batchUpdateInventory = async (updates: Partial<InventoryItem>[]) => {
   try {
     const response = await axiosInstance.patch(
-      `${process.env.NEXT_PUBLIC_API_URL}/inventory/batch`,
+      `${process.env.NEXT_PUBLIC_API_URL}/v1/inventory/batch`,
       { items: updates }
     );
     return response.data;
