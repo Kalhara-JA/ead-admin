@@ -34,9 +34,9 @@ const AddWarehouse: React.FC = () => {
       {/* Dialog Trigger */}
       <Dialog>
         <DialogTrigger asChild>
-          <Button size="sm" className="bg-green-500 text-white hover:bg-green-600">
+          <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-400 hover:cursor-pointer">
             Add Warehouse
-          </Button>
+          </div>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
