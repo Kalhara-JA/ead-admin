@@ -1,21 +1,16 @@
 // Types/inventory.ts
 export interface InventoryItem {
-    id: string;
-    productId: string;
-    quantity: number;
-    location: string;
-    minimumStockLevel: number;
-    maximumStockLevel: number;
-    reorderPoint: number;
-    lastRestockDate: Date;
-    status: 'in_stock' | 'low_stock' | 'out_of_stock';
-    unitCost: number;
-    supplierInfo?: {
-      supplierId: string;
-      leadTime: number;
-      preferredSupplier: boolean;
-    };
-  }
+  id: string;
+  sku: string;
+  name: string;
+  currentStock: number;
+  minimumStock: number;
+  maximumStock: number;
+  reorderPoint: number;
+  location: string;
+  lastRestocked: string;
+  status: "In Stock" | "Low Stock" | "Out of Stock" | "Overstock";
+}
   
   export interface StockUpdate {
     inventoryId: string;

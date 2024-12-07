@@ -34,7 +34,9 @@ import AddWarehouse from "./addWarehouse";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+import { RestockModal } from "./restockButton";
 import toast from "react-hot-toast";
+import { useRouter } from 'next/navigation';
 
 interface InventoryItem {
   id: string;
@@ -95,6 +97,12 @@ export default function InventoryPage() {
     if (percentage < 30) return "bg-yellow-500";
     if (percentage > 90) return "bg-blue-500";
     return "bg-green-500";
+  };
+
+  const router = useRouter();
+
+  const handleRedirect = () => {
+    router.push('/product'); // Redirects to the /product page
   };
 
   const transformBackendData = (data: any[]): InventoryItem[] => {
@@ -291,10 +299,10 @@ export default function InventoryPage() {
             />
             {isSyncing ? "Syncing..." : "Sync Inventory"}
           </Button>
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Item
-          </Button>
+          <Button onClick={handleRedirect}>
+      <Plus className="mr-2 h-4 w-4" />
+      Add Item
+    </Button>
         </div>
       </div>
 
@@ -367,7 +375,7 @@ export default function InventoryPage() {
                 </TableCell>
                 <TableCell>{item.lastRestocked}</TableCell>
                 <TableCell>
-                  <Button
+                  {/* <Button
                     variant="outline"
                     size="sm"
                     onClick={() => restock(item, 100)}
@@ -379,7 +387,8 @@ export default function InventoryPage() {
                       <RefreshCcw className="mr-2 h-4 w-4" />
                     )}
                     {restockingItemId === item.id ? "Restocking..." : "Restock"}
-                  </Button>
+                  </Button> */}
+                  <RestockModal item={item} isLoading={isLoading} onRestock={restock} />
                 </TableCell>
               </TableRow>
             ))}
