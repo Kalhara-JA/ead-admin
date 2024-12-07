@@ -1,5 +1,4 @@
-// AddCategory.tsx
-import React from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogTrigger,
@@ -8,16 +7,17 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog"; // Replace with your actual import
+} from "@/components/ui/dialog";
 import { IoAddOutline } from "react-icons/io5";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { fetchCategories } from "@/services/productService"; // Adjust this path as necessary
 
 interface AddCategoryProps {
   formValues: any;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleCategorySave: () => void;
+  handleCategorySave: (category: string) => void;
 }
 
 const AddCategory: React.FC<AddCategoryProps> = ({
@@ -25,6 +25,37 @@ const AddCategory: React.FC<AddCategoryProps> = ({
   handleInputChange,
   handleCategorySave,
 }) => {
+  const [error, setError] = useState<string | null>(null);
+
+  const validateAndSaveCategory = async () => {
+    try {
+      console.log("Validating and saving category...");
+      // Fetch all categories
+      const categories = await fetchCategories();
+      console.log("Categories:", categories);
+  
+      // Normalize input and check for duplicate
+      const normalizedInput = formValues.name.trim().toLowerCase();
+      console.log("Normalized input:", normalizedInput);
+  
+      // Check if the category name exists in the database
+      const isDuplicate = categories.some(
+        (category: { name: string }) => category.name.toLowerCase() === normalizedInput
+      );
+  
+      if (isDuplicate) {
+        setError("This category already exists.");
+      } else {
+        setError(null); // Clear any previous errors
+        handleCategorySave(formValues.name);
+      }
+    } catch (error) {
+      console.error("Error validating category:", error);
+      setError("An error occurred while validating the category.");
+    }
+  };
+  
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -52,9 +83,10 @@ const AddCategory: React.FC<AddCategoryProps> = ({
               className="col-span-3"
             />
           </div>
+          {error && <p className="text-red-500 text-sm">{error}</p>}
         </div>
         <DialogFooter>
-          <Button type="button" onClick={handleCategorySave}>
+          <Button type="button" onClick={validateAndSaveCategory}>
             Save
           </Button>
         </DialogFooter>
