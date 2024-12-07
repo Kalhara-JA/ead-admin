@@ -1,5 +1,6 @@
-import axiosInstance from "@/lib/axiosInstance";
 import { Category, Product } from "@/Type";
+
+import axiosInstance from "@/lib/axiosInstance";
 
 export const fetchProducts = async () => {
   try {
@@ -69,19 +70,13 @@ export const deleteProduct = async (id: string) => {
 };
 
 export const updateProduct = async (id: string, product: Product) => {
-  console.log(
-    "id",
-    id
-  );
+  console.log("id", id);
   try {
     const response = await axiosInstance.put(
       `${process.env.NEXT_PUBLIC_API_URL}/v1/products/${id}`,
       product
     );
-    console.log(
-      "updating..",
-      response
-    );
+    console.log("updating..", response);
     return response.data;
   } catch (error) {
     console.error("Error updating product:", error);
@@ -89,18 +84,20 @@ export const updateProduct = async (id: string, product: Product) => {
   }
 };
 
-export const updateImage = async (id: string, image: String) => {
-  console.log(
-    "id",
-    id
-  );
-  console.log("image", image);
+export const updateImage = async (id: string, image: string) => {
   try {
+    console.log("Updating image with ID:", id);
+    console.log("Image URL:", image);
     const response = await axiosInstance.put(
       `${process.env.NEXT_PUBLIC_API_URL}/v1/products/updateImage/${id}`,
-      image
+      image, // Pass the string directly
+      {
+        headers: {
+          "Content-Type": "text/plain", // Specify plain text if needed
+        },
+      }
     );
-    console.log(response);
+    console.log("Image update response:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error updating image:", error);

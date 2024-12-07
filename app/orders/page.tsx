@@ -43,6 +43,8 @@ function OrderPage() {
   const[loading,setLoading] = useState(false);
   const[deliveryStatus,setDeliveryStatus] = useState<string>('all');
   const[paymentStatus,setPaymentStatus] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const[searchDate,setSearchDate] = useState("");
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -61,6 +63,10 @@ function OrderPage() {
   }
 
   const filteredOrders = orders.filter((item) => {
+    const matchesSearch =
+      item.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesDate = item.date.includes(searchDate);
     const matchesPayments=
       !paymentStatus ||
       paymentStatus === "all" ||
@@ -69,8 +75,11 @@ function OrderPage() {
       !deliveryStatus ||
       deliveryStatus === "all" ||
       item.deliveryStatus === deliveryStatus;
-    return matchesPayments && matchesDelivery ;
+    return matchesPayments && matchesDelivery && matchesSearch && matchesDate;
   });
+
+  
+
 
 
   useEffect(() => {
@@ -148,11 +157,17 @@ function OrderPage() {
     <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
         <div className="flex flex-col md:flex-row gap-4">
           <Input
-            placeholder="Search by name or SKU..."
-            //value={5}
-            //onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search by order number or user email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="max-w-sm"
           />
+            <Input
+        type="date"
+        value={searchDate}
+        onChange={(e) =>setSearchDate(e.target.value)}
+        className="w-35"
+      />
           <Select value={paymentStatus} onValueChange={setPaymentStatus}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="By payment" />
@@ -183,7 +198,7 @@ function OrderPage() {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Id</TableHead>
+          <TableHead>Order No</TableHead>
           <TableHead>Email</TableHead>
           <TableHead>Date</TableHead>
           <TableHead>Bill Value</TableHead>
@@ -195,7 +210,7 @@ function OrderPage() {
       <TableBody>
         {filteredOrders.map((item) => (
           <TableRow key={item.id}>
-            <TableCell className="font-medium">{item.id}</TableCell>
+            <TableCell className="font-medium">{item.orderNumber}</TableCell>
             <TableCell>
   <a
     href={`mailto:${item.email}`}

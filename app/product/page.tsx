@@ -51,6 +51,7 @@ import {
   CloudinaryUploadWidgetResults,
 } from "next-cloudinary";
 import { FaCloudUploadAlt } from "react-icons/fa";
+import toast, { Toaster } from "react-hot-toast";
 
 const products: Product[] = [];
 
@@ -63,6 +64,8 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [imageURL, setImageURL] = useState<string | null>(null);
 
   const sortProducts = (a: Product, b: Product) => {
     const aValue = a[sortBy];
@@ -80,6 +83,7 @@ export default function ProductsPage() {
 
     return 0;
   };
+  console.log("productsdddddddddddd   ", products);  
   useEffect(() => {
     const getProducts = async () => {
       try {
@@ -103,10 +107,7 @@ export default function ProductsPage() {
         console.log(data);
         setCategories(data);
       } catch (error) {
-        console.error(
-          "Error fetching categories:",
-          error
-        );
+        console.error("Error fetching categories:", error);
       } finally {
         setLoading(false);
       }
@@ -180,9 +181,7 @@ export default function ProductsPage() {
   };
 
   const handleSave = async () => {
-    console.log(
-      "Saving product.."
-    );
+    console.log("Saving product..");
     console.log("Saving product:", formValues);
     try {
       const newProduct: Product = {
@@ -232,9 +231,7 @@ export default function ProductsPage() {
   };
 
   const handleCategorySave = async () => {
-    console.log(
-      "Saving category.."
-    );
+    console.log("Saving category..");
     console.log("Saving category:", categoryFormValues);
     try {
       const newCategory: Category = {
@@ -255,6 +252,7 @@ export default function ProductsPage() {
         name: "",
         skuCode: "",
       });
+      toast.success("Category added successfully!");
     } catch (error) {
       console.error("Error creating category:", error);
     }
@@ -284,6 +282,10 @@ export default function ProductsPage() {
   };
 
   const [image, setImage] = useState<string | null>(null);
+
+  console.log("imageeeeeeeeeeeeeeeeeeeeeeeeeeeeee", image);
+
+ 
 
   const handleEditSave = async () => {
     console.log("Saving product:", formValues);
@@ -336,16 +338,31 @@ export default function ProductsPage() {
       console.error("Error updating product:", error);
     }
   };
+  useEffect(() => {
+    if (selectedProductId && imageURL) {
+      // Make the API call to update the image once both productId and imageURL are set
+      updateImage(selectedProductId, imageURL);
+    }
+  }, [selectedProductId, imageURL]);
 
+  const handleImageUpload = (
+    productId: string,
+    uploadedImageURL: string
+  ) => {
+    setSelectedProductId(productId);
+    setImageURL(uploadedImageURL);
+  };
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Products</h1>
+        <Toaster />
         <AddProduct
           formValues={formValues}
           handleInputChange={handleInputChange}
           handleSave={handleSave}
           categories={categories}
+          products={products}
         />
       </div>
 
@@ -451,15 +468,17 @@ export default function ProductsPage() {
                       console.log("isPhotographer");
                     }}
                     onSuccess={(results: CloudinaryUploadWidgetResults) => {
-                      const uploadedResult =
-                        results.info as CloudinaryUploadWidgetInfo;
-                      const profileImageURL = {
-                        image: uploadedResult.secure_url,
-                      };
-                      console.log("profileImageURL", profileImageURL);
-                      updateImage(product.id, profileImageURL.image);
-                      setImage(profileImageURL.image);
+                      const uploadedResult = results.info as CloudinaryUploadWidgetInfo;
+                      const profileImageURL = uploadedResult.secure_url; // Directly get the URL
+                      console.log("Uploaded Image URL:", profileImageURL);
+                      console.log("Product IDtghtrhshhhhhhhhhhh:", product.id);
+                      // Update the image
+                      updateImage(product.id, profileImageURL);
+                      
+                      // Update the local state
+                      setImage(profileImageURL);
                     }}
+                    
                     options={{
                       tags: ["organization image"],
                       sources: ["local"],
