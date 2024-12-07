@@ -36,7 +36,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { RestockModal } from "./restockButton";
 import toast from "react-hot-toast";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 
 interface InventoryItem {
   id: string;
@@ -101,8 +101,8 @@ export default function InventoryPage() {
 
   const router = useRouter();
 
-  const handleRedirect = () => {
-    router.push('/product'); // Redirects to the /product page
+  const handleRedirect = (route:string) => {
+    router.push(`/${route}`); // Redirects to the /product page
   };
 
   const transformBackendData = (data: any[]): InventoryItem[] => {
@@ -293,16 +293,19 @@ export default function InventoryPage() {
           </Select>
         </div>
         <div className="flex gap-2">
+        <Button variant="outline" onClick={() => handleRedirect('warehouse')} disabled={isSyncing}>
+            Manage warehouses
+          </Button>
           <Button variant="outline" onClick={handleSync} disabled={isSyncing}>
             <RefreshCcw
               className={`mr-2 h-4 w-4 ${isSyncing ? "animate-spin" : ""}`}
             />
             {isSyncing ? "Syncing..." : "Sync Inventory"}
           </Button>
-          <Button onClick={handleRedirect}>
-      <Plus className="mr-2 h-4 w-4" />
-      Add Item
-    </Button>
+          <Button onClick={() => handleRedirect('product')}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Item
+          </Button>
         </div>
       </div>
 
@@ -388,7 +391,11 @@ export default function InventoryPage() {
                     )}
                     {restockingItemId === item.id ? "Restocking..." : "Restock"}
                   </Button> */}
-                  <RestockModal item={item} isLoading={isLoading} onRestock={restock} />
+                  <RestockModal
+                    item={item}
+                    isLoading={isLoading}
+                    onRestock={restock}
+                  />
                 </TableCell>
               </TableRow>
             ))}
