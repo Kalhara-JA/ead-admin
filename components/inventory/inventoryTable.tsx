@@ -5,6 +5,7 @@ import {
   AlertTriangle,
   ArrowDown,
   ArrowUp,
+  Loader2,
   Package,
   Plus,
   RefreshCcw,
@@ -27,12 +28,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { fetchInventory, restockInventory } from "@/services/inventoryService";
+import {
+  fetchInventory,
+  restockInventory,
+  updateInventoryWarehouse,
+} from "@/services/inventoryService";
+import toast, { ToastBar } from "react-hot-toast";
 
 import AddWarehouse from "./addWarehouse";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+import { RestockModal } from "./restockButton";
+import { Warehouse } from "@/types/inventoryTypes";
+import { fetchWarehouses } from "@/services/warehouseService";
+import { useRouter } from "next/navigation";
 
 interface InventoryItem {
   id: string;
@@ -54,6 +64,9 @@ export default function InventoryPage() {
   const [inventoryData, setInventoryData] = useState<InventoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [restockingItemId, setRestockingItemId] = useState<string | null>(null);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
 
   // Calculate inventory metrics
   const totalItems = inventoryData.reduce(
@@ -84,6 +97,7 @@ export default function InventoryPage() {
       item.status.toLowerCase().replace(" ", "-") === statusFilter;
     return matchesSearch && matchesLocation && matchesStatus;
   });
+
   const getStockLevelColor = (item: InventoryItem) => {
     const percentage = (item.currentStock / item.maximumStock) * 100;
     if (percentage === 0) return "bg-red-500";
@@ -91,7 +105,13 @@ export default function InventoryPage() {
     if (percentage > 90) return "bg-blue-500";
     return "bg-green-500";
   };
-  
+
+  const router = useRouter();
+
+  const handleRedirect = (route: string) => {
+    router.push(`/${route}`); // Redirects to the /product page
+  };
+
   const transformBackendData = (data: any[]): InventoryItem[] => {
     return data.map((item) => ({
       id: item.id.toString(),
@@ -103,15 +123,19 @@ export default function InventoryPage() {
       reorderPoint: 20, // Mocked reorder point
       location: item.location,
       lastRestocked: "2024-11-01", // Mocked last restocked date
-      status:
-        item.status === "IN_STOCK"
-          ? "In Stock"
-          : item.quantity === 0
-          ? "Out of Stock"
-          : item.quantity > 90
-          ? "Overstock"
-          : "Low Stock",
+      status: getItemStatus(item.quantity, 100), // Pass current stock and max stock
     }));
+  };
+
+  // Helper function to determine status
+  const getItemStatus = (
+    currentStock: number,
+    maxStock: number
+  ): InventoryItem["status"] => {
+    if (currentStock === 0) return "Out of Stock";
+    if (currentStock > 90) return "Overstock";
+    if (currentStock < 20) return "Low Stock";
+    return "In Stock";
   };
 
   const loadInventoryData = async () => {
@@ -122,28 +146,98 @@ export default function InventoryPage() {
       const transformedData = transformBackendData(rawData);
       setInventoryData(transformedData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch inventory data");
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch inventory data"
+      );
       console.error("Error fetching inventory:", err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const restock=async (inventoryId:string,quantity:number) => {
-    try{
-      await restockInventory(inventoryId,quantity);
-    }catch (err) {
-      
+  const restock = async (
+    inventoryItem: InventoryItem,
+    quantity: number
+  ): Promise<void> => {
+    try {
+      setRestockingItemId(inventoryItem.id);
+      setIsLoading(true);
+      const response = await restockInventory(inventoryItem.sku, quantity);
+
+      if (response) {
+        // Immediately reload inventory data to get the most up-to-date information from the backend
+        await loadInventoryData();
+        toast.success(`${inventoryItem.sku} has been successfully restocked.`);
+      } else {
+        toast.error(
+          `Failed to restock. Server responded with status: ${response.status}`
+        );
+      }
+    } catch (error) {
+      console.error("Error during restocking:", error);
+      toast.error("An error occurred while trying to restock the inventory.");
+    } finally {
+      setIsLoading(false);
+      setRestockingItemId(null);
     }
-  }
+  };
+
+  const loadWarehouses = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await fetchWarehouses();
+      setWarehouses(data);
+      console.log(data);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch warehouses"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     loadInventoryData();
-    console.log("Inventory data loaded");
-    console.log(inventoryData);
+    loadWarehouses();
   }, []);
 
-  
+  const handleSync = async () => {
+    setIsSyncing(true);
+    try {
+      await onSync();
+      toast.success("Inventory successfully synchronized");
+    } catch (error) {
+      toast.error("Failed to sync inventory");
+      console.error("Sync inventory error:", error);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  async function onSync() {
+    try {
+      const rawData = await fetchInventory();
+      const transformedData = transformBackendData(rawData);
+      setInventoryData(transformedData);
+    } catch (error) {
+      console.error("Error syncing inventory:", error);
+      throw new Error("Failed to sync inventory");
+    }
+  }
+
+  async function handleUpdateWarehouse(updatedItem: {
+    id: string;
+    location: string;
+  }) {
+    try {
+      const updateWarehouse = await updateInventoryWarehouse(updatedItem);
+    } catch (err) {
+      toast.error("Error updating warehouse");
+      console.error("Error updating warehouse:", err);
+    }
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -215,9 +309,9 @@ export default function InventoryPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Locations</SelectItem>
-              <SelectItem value="warehouse-a">Warehouse A</SelectItem>
-              <SelectItem value="warehouse-b">Warehouse B</SelectItem>
-              <SelectItem value="warehouse-c">Warehouse C</SelectItem>
+              {warehouses.map((warehouse) => (
+                <SelectItem value={warehouse.name}>{warehouse.name}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
 
@@ -235,18 +329,27 @@ export default function InventoryPage() {
           </Select>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
-            <RefreshCcw className="mr-2 h-4 w-4" />
-            Sync Inventory
+          <Button
+            variant="outline"
+            onClick={() => handleRedirect("warehouse")}
+            disabled={isSyncing}
+          >
+            Manage warehouses
           </Button>
-          <Button>
+          <Button variant="outline" onClick={handleSync} disabled={isSyncing}>
+            <RefreshCcw
+              className={`mr-2 h-4 w-4 ${isSyncing ? "animate-spin" : ""}`}
+            />
+            {isSyncing ? "Syncing..." : "Sync Inventory"}
+          </Button>
+          <Button onClick={() => handleRedirect("product")}>
             <Plus className="mr-2 h-4 w-4" />
             Add Item
           </Button>
         </div>
       </div>
 
-      <div className="border rounded-lg">
+      <div className="border rounded-lg bg-white">
         <Table>
           <TableHeader>
             <TableRow>
@@ -278,7 +381,13 @@ export default function InventoryPage() {
                     />
                   </div>
                 </TableCell>
-                <TableCell>{item.location=="Unknown"? <AddWarehouse/>:item.location}</TableCell>
+                <TableCell>
+                  <AddWarehouse
+                    warehouses={warehouses}
+                    inventoryItem={{ id: item.sku, location: item.location }}
+                    onUpdateWarehouse={handleUpdateWarehouse}
+                  />
+                </TableCell>
                 <TableCell>
                   <div
                     className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
@@ -309,13 +418,11 @@ export default function InventoryPage() {
                 </TableCell>
                 <TableCell>{item.lastRestocked}</TableCell>
                 <TableCell>
-                  <Button variant="outline" size="sm" onClick={()=>{
-                    restock(item.sku,100)
-                    
-                  }}>
-                    <RotateCcw className="h-4 w-4 mr-2" />
-                    Restock
-                  </Button>
+                  <RestockModal
+                    item={item}
+                    isLoading={isLoading}
+                    onRestock={restock}
+                  />
                 </TableCell>
               </TableRow>
             ))}
@@ -325,5 +432,3 @@ export default function InventoryPage() {
     </div>
   );
 }
-
-

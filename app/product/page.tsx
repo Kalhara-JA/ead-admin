@@ -64,7 +64,9 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(
+    null
+  );
   const [imageURL, setImageURL] = useState<string | null>(null);
 
   const sortProducts = (a: Product, b: Product) => {
@@ -83,7 +85,7 @@ export default function ProductsPage() {
 
     return 0;
   };
-  console.log("productsdddddddddddd   ", products);  
+  console.log("productsdddddddddddd   ", products);
   useEffect(() => {
     const getProducts = async () => {
       try {
@@ -285,8 +287,6 @@ export default function ProductsPage() {
 
   console.log("imageeeeeeeeeeeeeeeeeeeeeeeeeeeeee", image);
 
- 
-
   const handleEditSave = async () => {
     console.log("Saving product:", formValues);
     try {
@@ -345,10 +345,7 @@ export default function ProductsPage() {
     }
   }, [selectedProductId, imageURL]);
 
-  const handleImageUpload = (
-    productId: string,
-    uploadedImageURL: string
-  ) => {
+  const handleImageUpload = (productId: string, uploadedImageURL: string) => {
     setSelectedProductId(productId);
     setImageURL(uploadedImageURL);
   };
@@ -356,27 +353,25 @@ export default function ProductsPage() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Products</h1>
-        <Toaster />
-        <AddProduct
-          formValues={formValues}
-          handleInputChange={handleInputChange}
-          handleSave={handleSave}
-          categories={categories}
-          products={products}
-        />
-      </div>
-
-      <div className="flex justify-between items-center mb-6">
-        <AddCategory
-          formValues={categoryFormValues}
-          handleInputChange={(e) =>
-            setCategoryFormValues({
-              ...categoryFormValues,
-              [e.target.id]: e.target.value,
-            })
-          }
-          handleCategorySave={handleCategorySave}
-        />
+        <div className="flex gap-4 items-center">
+          <AddCategory
+            formValues={categoryFormValues}
+            handleInputChange={(e) =>
+              setCategoryFormValues({
+                ...categoryFormValues,
+                [e.target.id]: e.target.value,
+              })
+            }
+            handleCategorySave={handleCategorySave}
+          />
+          <AddProduct
+            formValues={formValues}
+            handleInputChange={handleInputChange}
+            handleSave={handleSave}
+            categories={categories}
+            products={products}
+          />
+        </div>
       </div>
 
       <div className="flex items-center justify-between mb-4">
@@ -468,17 +463,17 @@ export default function ProductsPage() {
                       console.log("isPhotographer");
                     }}
                     onSuccess={(results: CloudinaryUploadWidgetResults) => {
-                      const uploadedResult = results.info as CloudinaryUploadWidgetInfo;
+                      const uploadedResult =
+                        results.info as CloudinaryUploadWidgetInfo;
                       const profileImageURL = uploadedResult.secure_url; // Directly get the URL
                       console.log("Uploaded Image URL:", profileImageURL);
                       console.log("Product IDtghtrhshhhhhhhhhhh:", product.id);
                       // Update the image
                       updateImage(product.id, profileImageURL);
-                      
+
                       // Update the local state
                       setImage(profileImageURL);
                     }}
-                    
                     options={{
                       tags: ["organization image"],
                       sources: ["local"],

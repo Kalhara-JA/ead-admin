@@ -132,3 +132,25 @@ export const batchUpdateInventory = async (updates: Partial<InventoryItem>[]) =>
     throw error;
   }
 };
+
+export const updateInventoryWarehouse = async (updatedItem:Partial<InventoryItem>) => {
+  const skuCode = updatedItem.id;
+  const location = updatedItem.location;
+  console.log(skuCode, location);
+  try {
+    const response = await axiosInstance.post(
+      `${process.env.NEXT_PUBLIC_API_URL}/v1/inventory/change-warehouse` ,null,
+      {
+        params: {
+          skuCode,
+          location
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating inventory warehouse:", error);
+    throw error;
+  }
+  
+}
