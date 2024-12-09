@@ -28,14 +28,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { fetchInventory, restockInventory } from "@/services/inventoryService";
+import {
+  fetchInventory,
+  restockInventory,
+  updateInventoryWarehouse,
+} from "@/services/inventoryService";
+import toast, { ToastBar } from "react-hot-toast";
 
 import AddWarehouse from "./addWarehouse";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { RestockModal } from "./restockButton";
-import toast from "react-hot-toast";
+import { Warehouse } from "@/types/inventoryTypes";
+import { fetchWarehouses } from "@/services/warehouseService";
 import { useRouter } from "next/navigation";
 
 interface InventoryItem {
@@ -60,6 +66,7 @@ export default function InventoryPage() {
   const [error, setError] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [restockingItemId, setRestockingItemId] = useState<string | null>(null);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
 
   // Calculate inventory metrics
   const totalItems = inventoryData.reduce(
@@ -101,7 +108,7 @@ export default function InventoryPage() {
 
   const router = useRouter();
 
-  const handleRedirect = (route:string) => {
+  const handleRedirect = (route: string) => {
     router.push(`/${route}`); // Redirects to the /product page
   };
 
@@ -175,8 +182,25 @@ export default function InventoryPage() {
     }
   };
 
+  const loadWarehouses = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await fetchWarehouses();
+      setWarehouses(data);
+      console.log(data);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch warehouses"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadInventoryData();
+    loadWarehouses();
   }, []);
 
   const handleSync = async () => {
@@ -200,6 +224,18 @@ export default function InventoryPage() {
     } catch (error) {
       console.error("Error syncing inventory:", error);
       throw new Error("Failed to sync inventory");
+    }
+  }
+
+  async function handleUpdateWarehouse(updatedItem: {
+    id: string;
+    location: string;
+  }) {
+    try {
+      const updateWarehouse = await updateInventoryWarehouse(updatedItem);
+    } catch (err) {
+      toast.error("Error updating warehouse");
+      console.error("Error updating warehouse:", err);
     }
   }
 
@@ -273,9 +309,9 @@ export default function InventoryPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Locations</SelectItem>
-              <SelectItem value="warehouse-a">Warehouse A</SelectItem>
-              <SelectItem value="warehouse-b">Warehouse B</SelectItem>
-              <SelectItem value="warehouse-c">Warehouse C</SelectItem>
+              {warehouses.map((warehouse) => (
+                <SelectItem value={warehouse.name}>{warehouse.name}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
 
@@ -293,7 +329,11 @@ export default function InventoryPage() {
           </Select>
         </div>
         <div className="flex gap-2">
-        <Button variant="outline" onClick={() => handleRedirect('warehouse')} disabled={isSyncing}>
+          <Button
+            variant="outline"
+            onClick={() => handleRedirect("warehouse")}
+            disabled={isSyncing}
+          >
             Manage warehouses
           </Button>
           <Button variant="outline" onClick={handleSync} disabled={isSyncing}>
@@ -302,14 +342,14 @@ export default function InventoryPage() {
             />
             {isSyncing ? "Syncing..." : "Sync Inventory"}
           </Button>
-          <Button onClick={() => handleRedirect('product')}>
+          <Button onClick={() => handleRedirect("product")}>
             <Plus className="mr-2 h-4 w-4" />
             Add Item
           </Button>
         </div>
       </div>
 
-      <div className="border rounded-lg">
+      <div className="border rounded-lg bg-white">
         <Table>
           <TableHeader>
             <TableRow>
@@ -342,11 +382,11 @@ export default function InventoryPage() {
                   </div>
                 </TableCell>
                 <TableCell>
-                  {item.location == "Unknown" ? (
-                    <AddWarehouse />
-                  ) : (
-                    item.location
-                  )}
+                  <AddWarehouse
+                    warehouses={warehouses}
+                    inventoryItem={{ id: item.sku, location: item.location }}
+                    onUpdateWarehouse={handleUpdateWarehouse}
+                  />
                 </TableCell>
                 <TableCell>
                   <div
@@ -378,19 +418,6 @@ export default function InventoryPage() {
                 </TableCell>
                 <TableCell>{item.lastRestocked}</TableCell>
                 <TableCell>
-                  {/* <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => restock(item, 100)}
-                    disabled={restockingItemId === item.id}
-                  >
-                    {restockingItemId === item.id ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <RefreshCcw className="mr-2 h-4 w-4" />
-                    )}
-                    {restockingItemId === item.id ? "Restocking..." : "Restock"}
-                  </Button> */}
                   <RestockModal
                     item={item}
                     isLoading={isLoading}
