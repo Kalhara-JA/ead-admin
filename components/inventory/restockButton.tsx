@@ -59,7 +59,7 @@ export function RestockModal({ item, onRestock, isLoading }: RestockModalProps) 
           </DialogClose>
           <Button 
             onClick={handleRestock} 
-            disabled={isLoading || parseInt(quantity, 10) <= 0}
+            disabled={isLoading || parseInt(quantity, 10) < 0}
           >
             {isLoading ? (
               <>

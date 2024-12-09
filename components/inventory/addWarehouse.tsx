@@ -1,32 +1,51 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import React, { useEffect, useState } from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; // shadcn Select component
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import React, { useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-import { ALargeSmall } from 'lucide-react';
-import { Button } from '@/components/ui/button'; // shadcn Button component
+import { Button } from "@/components/ui/button"; // shadcn Button component
+import { Warehouse } from "@/types/inventoryTypes";
+import toast from "react-hot-toast";
 
-const AddWarehouse: React.FC = () => {
-  const [warehouseName, setWarehouseName] = useState<string>('');
-  const [warehouses, setWarehouses] = useState<string[]>([]);
-  const [selectedWarehouse, setSelectedWarehouse] = useState<string>('');
+interface AddWarehouseProps {
+  inventoryItem: { id: string; location?: string };
+  warehouses: Warehouse[];
+  onUpdateWarehouse: (updatedItem: { id: string; location: string }) => void;
+}
 
-  // Fetch warehouses
-  useEffect(() => {
-    // Simulating an API call to fetch warehouses
-    const fetchWarehouses = async () => {
-      const fetchedWarehouses = ['Warehouse A', 'Warehouse B', 'Warehouse C']; // Replace with your API call
-      setWarehouses(fetchedWarehouses);
-    };
-
-    fetchWarehouses();
-  }, []);
+const AddWarehouse: React.FC<AddWarehouseProps> = ({
+  inventoryItem,
+  warehouses,
+  onUpdateWarehouse,
+}) => {
+  const [selectedWarehouse, setSelectedWarehouse] = useState<string>(inventoryItem.location?.toString() || "Unknown");
 
   const handleFormSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (selectedWarehouse.trim()) {
-      alert(`Warehouse "${selectedWarehouse}" selected successfully!`);
-      setSelectedWarehouse('');
+
+    if (inventoryItem.location === selectedWarehouse) {
+      toast.error(`Warehouse "${selectedWarehouse}" is already assigned to this product.`);
+    } else {
+      toast.success(
+        `Warehouse changed from "${
+          inventoryItem.location || "none"
+        }" to "${selectedWarehouse}".`
+      );
+      console.log(inventoryItem.id,selectedWarehouse);
+      onUpdateWarehouse({ id: inventoryItem.id, location:selectedWarehouse });
     }
+
   };
 
   return (
@@ -34,9 +53,15 @@ const AddWarehouse: React.FC = () => {
       {/* Dialog Trigger */}
       <Dialog>
         <DialogTrigger asChild>
-          <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-400 hover:cursor-pointer">
-            Add Warehouse
-          </div>
+          {inventoryItem.location == "Unknown" ? (
+            <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-400 hover:cursor-pointer">
+              Add Warehouse
+            </div>
+          ) : (
+            <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-400 hover:cursor-pointer">
+              {inventoryItem.location}
+            </div>
+          )}
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
@@ -52,23 +77,30 @@ const AddWarehouse: React.FC = () => {
               >
                 Select Warehouse
               </label>
-              <Select
-                onValueChange={(value) => setSelectedWarehouse(value)}
-              >
+              <Select onValueChange={(value) => setSelectedWarehouse(value)}>
                 <SelectTrigger id="select-warehouse">
-                  <SelectValue placeholder="Choose a warehouse" />
+                  <SelectValue
+                    placeholder={
+                      inventoryItem.location === "Unknown"
+                        ? "Choose a warehouse"
+                        : inventoryItem.location
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {warehouses.map((warehouse, index) => (
-                    <SelectItem key={index} value={warehouse}>
-                      {warehouse}
+                    <SelectItem key={warehouse.id} value={warehouse.name}>
+                      {warehouse.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="flex justify-end">
-              <Button type="submit" className="bg-green-500 text-white hover:bg-green-600">
+              <Button
+                type="submit"
+                className="bg-green-500 text-white hover:bg-green-600"
+              >
                 Submit
               </Button>
             </div>

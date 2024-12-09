@@ -26,11 +26,20 @@ export interface InventoryItem {
     lastUpdated: Date;
   }
 
+  export interface Warehouse {
+    id: string;
+    name: string;
+    address: string;
+    managerName: string;
+    inventoryList: [];
+  }
 
   enum InventoryStatus {
     InStock = 'in_stock',
     LowStock = 'low_stock',
     OutOfStock = 'out_of_stock',
   }
+
+  
 
 
