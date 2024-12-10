@@ -187,7 +187,9 @@ const AddProduct: React.FC<AddProductProps> = ({
             {errors.price && (
               <p className="col-span-4 text-red-500">{errors.price}</p>
             )}
+
           </div>  
+
         </div>
         <DialogFooter>
           <Button type="button" onClick={handleSubmit}>
