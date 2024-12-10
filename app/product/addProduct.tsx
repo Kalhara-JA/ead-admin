@@ -1,6 +1,3 @@
-import React, { useState } from "react";
-import toast from "react-hot-toast";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,9 +7,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import React, { useState } from "react";
+
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { IoAddOutline } from "react-icons/io5";
+import { Label } from "@/components/ui/label";
+import toast from "react-hot-toast";
 
 interface AddProductProps {
   formValues: any;
@@ -186,7 +187,9 @@ const AddProduct: React.FC<AddProductProps> = ({
             {errors.price && (
               <p className="col-span-4 text-red-500">{errors.price}</p>
             )}
-          </div>
+
+          </div>  
+
         </div>
         <DialogFooter>
           <Button type="button" onClick={handleSubmit}>

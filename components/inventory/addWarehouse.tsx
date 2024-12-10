@@ -59,7 +59,7 @@ const AddWarehouse: React.FC<AddWarehouseProps> = ({
             </div>
           ) : (
             <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-400 hover:cursor-pointer">
-              {inventoryItem.location}
+              {selectedWarehouse}
             </div>
           )}
         </DialogTrigger>

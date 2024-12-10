@@ -11,9 +11,10 @@ interface RestockModalProps {
   item: InventoryItem;
   onRestock: (item: InventoryItem, quantity: number) => Promise<void>;
   isLoading: boolean;
+  warehouse: string;
 }
 
-export function RestockModal({ item, onRestock, isLoading }: RestockModalProps) {
+export function RestockModal({ item, onRestock, isLoading,warehouse }: RestockModalProps) {
   const [quantity, setQuantity] = useState<string>('100');
 
   const handleRestock = async () => {
@@ -26,7 +27,7 @@ export function RestockModal({ item, onRestock, isLoading }: RestockModalProps) 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" disabled={warehouse=="Unknown"}>
           <RefreshCcw className="mr-2 h-4 w-4" />
           Restock
         </Button>
