@@ -422,6 +422,7 @@ export default function InventoryPage() {
                     item={item}
                     isLoading={isLoading}
                     onRestock={restock}
+                    warehouse={item.location}
                   />
                 </TableCell>
               </TableRow>

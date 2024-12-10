@@ -6,7 +6,7 @@ import axiosInstance from "@/lib/axiosInstance";
 export const fetchInventory = async () => {
   try {
     const response = await axiosInstance.get(
-      `${process.env.NEXT_PUBLIC_API_URL}/v1/inventory/all`
+      `${process.env.NEXT_PUBLIC_API_URL}/v1/inventory`
     );
     console.log(response.data);
     return response.data;

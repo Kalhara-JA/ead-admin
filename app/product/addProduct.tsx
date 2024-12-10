@@ -1,6 +1,3 @@
-import React, { useState } from "react";
-import toast from "react-hot-toast";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,9 +7,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import React, { useState } from "react";
+
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { IoAddOutline } from "react-icons/io5";
+import { Label } from "@/components/ui/label";
+import toast from "react-hot-toast";
 
 interface AddProductProps {
   formValues: any;
@@ -54,11 +55,6 @@ const AddProduct: React.FC<AddProductProps> = ({
       newErrors.price = "Price is required";
     } else if (Number(formValues.price) <= 0) {
       newErrors.price = "Price must be a positive value";
-    }
-    if (!formValues.stock && formValues.stock !== 0) {
-      newErrors.stock = "Stock is required";
-    } else if (Number(formValues.stock) < 0) {
-      newErrors.stock = "Stock cannot be negative";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -191,22 +187,7 @@ const AddProduct: React.FC<AddProductProps> = ({
             {errors.price && (
               <p className="col-span-4 text-red-500">{errors.price}</p>
             )}
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="stock" className="text-right">
-              Stock
-            </Label>
-            <Input
-              id="stock"
-              value={formValues.stock}
-              onChange={handleInputChange}
-              className="col-span-3"
-              type="number"
-            />
-            {errors.stock && (
-              <p className="col-span-4 text-red-500">{errors.stock}</p>
-            )}
-          </div>
+          </div>  
         </div>
         <DialogFooter>
           <Button type="button" onClick={handleSubmit}>
