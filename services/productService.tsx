@@ -32,7 +32,7 @@ export const createProduct = async (product: Product) => {
 export const createCategory = async (category: Category) => {
   try {
     const response = await axiosInstance.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/v1/products/createCategory`,
+      `${process.env.NEXT_PUBLIC_API_URL}/v1/products/categories`,
       category
     );
     console.log(response);
@@ -46,7 +46,7 @@ export const createCategory = async (category: Category) => {
 export const fetchCategories = async () => {
   try {
     const response = await axiosInstance.get(
-      `${process.env.NEXT_PUBLIC_API_URL}/v1/products/getAllCategories`
+      `${process.env.NEXT_PUBLIC_API_URL}/v1/products/categories`
     );
     console.log(response);
     return response.data;
@@ -89,7 +89,7 @@ export const updateImage = async (id: string, image: string) => {
     console.log("Updating image with ID:", id);
     console.log("Image URL:", image);
     const response = await axiosInstance.put(
-      `${process.env.NEXT_PUBLIC_API_URL}/v1/products/updateImage/${id}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/v1/products/images/${id}`,
       image, // Pass the string directly
       {
         headers: {
@@ -109,7 +109,7 @@ export const getQuantityOfAProduct = async (skuCode: string) => {
   console.log("skuCode", skuCode);
   try {
     const response = await axiosInstance.get(
-      `${process.env.NEXT_PUBLIC_API_URL}/v1/inventory/getProductQuantity/${skuCode}`
+      `${process.env.NEXT_PUBLIC_API_URL}/v1/inventory/product-quantities/${skuCode}`
     );
     console.log(response);
     return response.data; // Axios stores the response data in `data`

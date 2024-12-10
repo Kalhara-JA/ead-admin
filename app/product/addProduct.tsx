@@ -55,11 +55,6 @@ const AddProduct: React.FC<AddProductProps> = ({
     } else if (Number(formValues.price) <= 0) {
       newErrors.price = "Price must be a positive value";
     }
-    if (!formValues.stock && formValues.stock !== 0) {
-      newErrors.stock = "Stock is required";
-    } else if (Number(formValues.stock) < 0) {
-      newErrors.stock = "Stock cannot be negative";
-    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -190,21 +185,6 @@ const AddProduct: React.FC<AddProductProps> = ({
             />
             {errors.price && (
               <p className="col-span-4 text-red-500">{errors.price}</p>
-            )}
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="stock" className="text-right">
-              Stock
-            </Label>
-            <Input
-              id="stock"
-              value={formValues.stock}
-              onChange={handleInputChange}
-              className="col-span-3"
-              type="number"
-            />
-            {errors.stock && (
-              <p className="col-span-4 text-red-500">{errors.stock}</p>
             )}
           </div>
         </div>
