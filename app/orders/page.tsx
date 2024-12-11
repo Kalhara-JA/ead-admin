@@ -333,8 +333,8 @@ function OrderPage() {
                     size="sm"
                     onClick={() => handleNavigation(item.orderNumber)}
                   >
-                    <MoreVertical className="h-4 w-4 mr-2" />
-                    More
+                     More
+                    <MoreVertical className="h-4 w-3 mr-2" />
                   </Button>
                   {/* <OrderModel isModalOpen={isModalOpen} openModal={openModal} closeModal={closeModal} orderprop={item}/> */}
                 </TableCell>
